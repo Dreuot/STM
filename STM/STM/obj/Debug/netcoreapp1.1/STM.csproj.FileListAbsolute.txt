@@ -1,9 +1,0 @@
-C:\Users\user\Desktop\STM\STM\STM\STM\bin\Debug\netcoreapp1.1\STM.deps.json
-C:\Users\user\Desktop\STM\STM\STM\STM\bin\Debug\netcoreapp1.1\STM.runtimeconfig.json
-C:\Users\user\Desktop\STM\STM\STM\STM\bin\Debug\netcoreapp1.1\STM.runtimeconfig.dev.json
-C:\Users\user\Desktop\STM\STM\STM\STM\bin\Debug\netcoreapp1.1\STM.dll
-C:\Users\user\Desktop\STM\STM\STM\STM\bin\Debug\netcoreapp1.1\STM.pdb
-C:\Users\user\Desktop\STM\STM\STM\STM\obj\Debug\netcoreapp1.1\STM.csprojResolveAssemblyReference.cache
-C:\Users\user\Desktop\STM\STM\STM\STM\obj\Debug\netcoreapp1.1\STM.AssemblyInfo.cs
-C:\Users\user\Desktop\STM\STM\STM\STM\obj\Debug\netcoreapp1.1\STM.dll
-C:\Users\user\Desktop\STM\STM\STM\STM\obj\Debug\netcoreapp1.1\STM.pdb
