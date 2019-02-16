@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STM", "STM\STM.csproj", "{DAA63579-CB96-4986-8F94-664D0C5A4898}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "STM", "STM\STM.csproj", "{DAA63579-CB96-4986-8F94-664D0C5A4898}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "STM Data", "STM Data\STM Data.csproj", "{C42321B3-C47E-41F1-8CEC-39E95F33B4E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{DAA63579-CB96-4986-8F94-664D0C5A4898}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAA63579-CB96-4986-8F94-664D0C5A4898}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAA63579-CB96-4986-8F94-664D0C5A4898}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C42321B3-C47E-41F1-8CEC-39E95F33B4E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C42321B3-C47E-41F1-8CEC-39E95F33B4E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C42321B3-C47E-41F1-8CEC-39E95F33B4E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C42321B3-C47E-41F1-8CEC-39E95F33B4E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
