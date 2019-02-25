@@ -1,0 +1,56 @@
+﻿@model STM.Models.RegisterModel
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="login-form mt-5">
+    <div class="d-flex justify-content-center">
+        <h4>Авторизация</h4>
+    </div>
+    <form action="@Url.Action("Register", "Account")" method="POST">
+        <div class="row mb-3">
+            <div class="col">
+                <input type="text" class="stm-text" name="Login" value="" placeholder="Login" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <input type="password" class="stm-text" name="Password" value="" placeholder="Password" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <input type="password" class="stm-text" name="ConfirmPassword" value="" placeholder="Confirm password" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <input type="text" class="stm-text" name="Email" value="" placeholder="Email" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <input type="text" class="stm-text" name="FirstName" value="" placeholder="First name" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col">
+                <input type="text" class="stm-text" name="LastName" value="" placeholder="Last name" />
+            </div>
+        </div>
+        <div class="d-flex justify-content-center">
+            <input type="submit" class="stm-btn" value="Зарегистрироваться">
+        </div>
+    </form>
+</div>
+
+@*
+    public string Login { get; set; }
+    public string Password { get; set; }
+    public string Email { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    public string ConfirmPassword { get; set; }
+*@

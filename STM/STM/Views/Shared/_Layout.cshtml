@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <link href="~/css/style.css" rel="stylesheet" />
+    <link href="~/css/bootstrap.css" rel="stylesheet" />
+    <script src="~/js/script.js"></script>
+</head>
+<body>
+    <header>
+        <a href="#" class="logo">STM</a>
+        <ul>
+            <li><a href="#">item 1</a></li>
+            <li><a href="#">item 2</a></li>
+            <li><a href="#">item 3</a></li>
+            <li><a href="#">item 4</a></li>
+        </ul>
+        <div class="search"><input placeholder="search" class="stm-text" type="text" name="search" value="" /></div>
+        @if (User.Identity.Name != null)
+        {
+            <a href="@Url.Action("Logout", "Account")" class="playbar"></a>
+        }
+    </header>
+    @RenderBody()
+</body>
+</html>
