@@ -8,6 +8,7 @@ using STM.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
+using STM.Infrastructure;
 
 namespace STM.Controllers
 {
@@ -73,7 +74,7 @@ namespace STM.Controllers
                 CUser user = await db.CUser.FirstOrDefaultAsync(u => u.Login == model.Login || u.Email == model.Email);
                 if (user == null)
                 {
-                    db.CUser.Add(new CUser { Login = model.Login, Email = model.Email, Password = crypto.GetHash(model.Password), FirstName = model.FirstName, LastName = model.LastName });
+                    db.CUser.Add(new CUser { Id = IdGenerator.Next(), Login = model.Login, Email = model.Email, Password = crypto.GetHash(model.Password), FirstName = model.FirstName, LastName = model.LastName });
                     await db.SaveChangesAsync();
 
                     await Authenticate(model.Login);

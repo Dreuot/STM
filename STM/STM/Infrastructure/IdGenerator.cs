@@ -11,13 +11,26 @@ namespace STM.Infrastructure
 
         public static string Next()
         {
-            var current = context.CConfig.FirstOrDefault();
+            var current = context.CConfig.Where(c => c.KeyC == "CurrentId").FirstOrDefault();
+            string id = "";
             if(current != null)
             {
-                return current.ValueC;
+                id = "1-" + current.ValueC;
+
+                ulong numeric = Convert.ToUInt64(current.ValueC, 16);
+                numeric++;
+                current.ValueC = numeric.ToString("X");
+                context.SaveChanges();
+                
+            }
+            else
+            {
+                context.CConfig.Add(new Models.Data.CConfig() { KeyC = "CurrentId", ValueC = "1", Id = "0-100" });
+                context.SaveChanges();
+                id = "1-0";
             }
 
-            return "0-1";
+            return id;
         }
     }
 }
