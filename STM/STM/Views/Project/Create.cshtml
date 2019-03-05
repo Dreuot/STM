@@ -1,0 +1,16 @@
+﻿@model STM.Models.Data.CProject
+
+<form action="@Url.Action("Create", "Project")" method="post">
+    <div class="row align-items-center mb-4">
+        <div class="col-4 text-right"><label for="Name">Name</label></div>
+        <div class="col-8"><input class="stm-text" type="text" name="Name"></div>
+    </div>
+    <div class="row align-items-center mb-4">
+        <div class="col-4 text-right"><label for="Prefix">Prefix</label></div>
+        <div class="col-8"><input class="stm-text" type="text" name="Prefix"></div>
+    </div>
+    <div class="row align-items-center mb-4">
+        <div class="col-4 text-right"><label for="Description">Description</label></div>
+        <div class="col-8"><textarea class="stm-text" name="Description"></textarea></div>
+    </div>
+</form>

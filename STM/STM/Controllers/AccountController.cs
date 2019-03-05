@@ -38,19 +38,18 @@ namespace STM.Controllers
                 if (user != null)
                 {
                     await Authenticate(model.Login);
-
                     return RedirectToAction("Index", "Home");
                 }
 
-                ModelState.AddModelError("", "Некорректные логин и(или) пароль");
+                ViewBag.Error = "Некорректные логин и(или) пароль";
             }
 
+            ViewBag.Error = ViewBag.Error == null ? "Необходимо заполнить все обязательные поля" : ViewBag.Error;
             return View(model);
         }
 
         private async Task Authenticate(string userName)
         {
-
             var claims = new List<Claim>
             {
                 new Claim(ClaimsIdentity.DefaultNameClaimType, userName)
@@ -76,7 +75,6 @@ namespace STM.Controllers
                 {
                     db.CUser.Add(new CUser { Id = IdGenerator.Next(), Login = model.Login, Email = model.Email, Password = crypto.GetHash(model.Password), FirstName = model.FirstName, LastName = model.LastName });
                     await db.SaveChangesAsync();
-
                     await Authenticate(model.Login);
 
                     return RedirectToAction("Index", "Home");
@@ -86,6 +84,7 @@ namespace STM.Controllers
                 ModelState.AddModelError("", error);
             }
 
+            ViewBag.Error = ViewBag.Error == null ? "Необходимо заполнить все обязательные поля" : ViewBag.Error;
             return View(model);
         }
 

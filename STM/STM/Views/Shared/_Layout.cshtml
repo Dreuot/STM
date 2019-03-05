@@ -7,15 +7,25 @@
     <link href="~/css/style.css" rel="stylesheet" />
     <link href="~/css/bootstrap.css" rel="stylesheet" />
     <script src="~/js/script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gojs/2.0.4/go.js"></script>
 </head>
 <body>
     <header>
         <a href="#" class="logo">STM</a>
-        <ul>
-            <li><a href="#">item 1</a></li>
-            <li><a href="#">item 2</a></li>
-            <li><a href="#">item 3</a></li>
-            <li><a href="#">item 4</a></li>
+        <ul class="stm-menu">
+            <li><a href="#">Home</a></li>
+            <li><a href="@Url.Action("Index", "Project")">Project</a></li>
+            <li><a href="@Url.Action("Index", "Board")">Board</a></li>
+            <li><a href="@Url.Action("Index", "Task")">Task</a></li>
+            <li>
+                <a href="@Url.Action("Index", "Setup")">Setup</a>
+                <ul class="stm-submenu">
+                    <li><a href="@Url.Action("Status", "Setup")"></a></li>
+                    <li><a href="@Url.Action("Workflow", "Setup")"></a></li>
+                    <li><a href="@Url.Action("Type", "Setup")"></a></li>
+                    <li><a href="@Url.Action("", "Setup")"></a></li>
+                </ul>
+            </li>
         </ul>
         <div class="search"><input placeholder="search" class="stm-text" type="text" name="search" value="" /></div>
         @if (User.Identity.Name != null)
