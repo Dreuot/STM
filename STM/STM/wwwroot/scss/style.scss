@@ -492,6 +492,15 @@ textarea{
         background-color: $primary-shadow;
     }
 
+    &:visited {
+        color: #ffffff;
+    }
+
+    &[disabled=disabled] {
+        background-color: #bdc3c7 !important;
+        border-color: #bdc3c7!important;
+    }
+
     &.stm-btn-yellow {
         background-color: $yellow;
         border-color: $yellow;

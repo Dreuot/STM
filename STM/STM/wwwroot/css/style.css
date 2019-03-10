@@ -330,6 +330,11 @@ textarea {
     background-color: #1dd2af; }
   .stm-btn:active {
     background-color: #16A085; }
+  .stm-btn:visited {
+    color: #ffffff; }
+  .stm-btn[disabled=disabled] {
+    background-color: #bdc3c7 !important;
+    border-color: #bdc3c7 !important; }
   .stm-btn.stm-btn-yellow {
     background-color: #F1C40F;
     border-color: #F1C40F; }
