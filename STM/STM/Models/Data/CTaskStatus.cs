@@ -12,13 +12,14 @@ namespace STM.Models.Data
             CWorkflowStatusTo = new HashSet<CWorkflow>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public DateTime? Created { get; set; }
         public string Name { get; set; }
+        public string Stage { get; set; }
         public string Icon { get; set; }
 
-        public ICollection<CTask> CTask { get; set; }
-        public ICollection<CWorkflow> CWorkflowStatusFrom { get; set; }
-        public ICollection<CWorkflow> CWorkflowStatusTo { get; set; }
+        public virtual ICollection<CTask> CTask { get; set; }
+        public virtual ICollection<CWorkflow> CWorkflowStatusFrom { get; set; }
+        public virtual ICollection<CWorkflow> CWorkflowStatusTo { get; set; }
     }
 }

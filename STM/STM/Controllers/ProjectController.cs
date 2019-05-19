@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using STM.Models.Data;
 using STM.Services;
 
 namespace STM.Controllers
 {
+    [Authorize]
     public class ProjectController : Controller
     {
         private STM_DBContext db { get; set; }
@@ -25,7 +27,7 @@ namespace STM.Controllers
             return View(projects);
         }
 
-        public IActionResult Project(string id)
+        public IActionResult Project(int id)
         {
             db.CProject.Where(p => p.Id == id).FirstOrDefault();
 

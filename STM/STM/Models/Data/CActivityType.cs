@@ -10,11 +10,11 @@ namespace STM.Models.Data
             CActivity = new HashSet<CActivity>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public DateTime? Created { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public ICollection<CActivity> CActivity { get; set; }
+        public virtual ICollection<CActivity> CActivity { get; set; }
     }
 }

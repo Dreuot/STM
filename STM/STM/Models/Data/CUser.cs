@@ -16,7 +16,7 @@ namespace STM.Models.Data
             CUserTeam = new HashSet<CUserTeam>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
         public string Avatar { get; set; }
@@ -27,12 +27,12 @@ namespace STM.Models.Data
         public string Phone { get; set; }
         public string Email { get; set; }
 
-        public ICollection<CActivity> CActivity { get; set; }
-        public ICollection<CComment> CComment { get; set; }
-        public ICollection<CProject> CProject { get; set; }
-        public ICollection<CTask> CTaskAssignee { get; set; }
-        public ICollection<CTask> CTaskCreatedBy { get; set; }
-        public ICollection<CUserRole> CUserRole { get; set; }
-        public ICollection<CUserTeam> CUserTeam { get; set; }
+        public virtual ICollection<CActivity> CActivity { get; set; }
+        public virtual ICollection<CComment> CComment { get; set; }
+        public virtual ICollection<CProject> CProject { get; set; }
+        public virtual ICollection<CTask> CTaskAssignee { get; set; }
+        public virtual ICollection<CTask> CTaskCreatedBy { get; set; }
+        public virtual ICollection<CUserRole> CUserRole { get; set; }
+        public virtual ICollection<CUserTeam> CUserTeam { get; set; }
     }
 }

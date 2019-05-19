@@ -25,9 +25,8 @@ namespace STM.Infrastructure
             }
             else
             {
-                context.CConfig.Add(new Models.Data.CConfig() { KeyC = "CurrentId", ValueC = "1", Id = "0-100" });
+                context.CConfig.Add(new Models.Data.CConfig() { KeyC = "CurrentId", ValueC = "1"});
                 context.SaveChanges();
-                id = "1-0";
             }
 
             return id;

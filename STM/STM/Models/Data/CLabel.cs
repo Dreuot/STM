@@ -10,10 +10,10 @@ namespace STM.Models.Data
             CTaskLabel = new HashSet<CTaskLabel>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public DateTime? Created { get; set; }
         public string Name { get; set; }
 
-        public ICollection<CTaskLabel> CTaskLabel { get; set; }
+        public virtual ICollection<CTaskLabel> CTaskLabel { get; set; }
     }
 }

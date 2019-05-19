@@ -5,11 +5,11 @@ namespace STM.Models.Data
 {
     public partial class CTeamRole
     {
-        public string Id { get; set; }
-        public string TeamId { get; set; }
-        public string RoleId { get; set; }
+        public int Id { get; set; }
+        public int? TeamId { get; set; }
+        public int? RoleId { get; set; }
 
-        public CRole Role { get; set; }
-        public CTeam Team { get; set; }
+        public virtual CRole Role { get; set; }
+        public virtual CTeam Team { get; set; }
     }
 }

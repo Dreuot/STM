@@ -10,11 +10,11 @@ namespace STM.Models.Data
             CTask = new HashSet<CTask>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public DateTime? Created { get; set; }
         public string Name { get; set; }
         public string Icon { get; set; }
 
-        public ICollection<CTask> CTask { get; set; }
+        public virtual ICollection<CTask> CTask { get; set; }
     }
 }

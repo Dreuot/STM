@@ -11,12 +11,12 @@ namespace STM.Models.Data
             CUserTeam = new HashSet<CUserTeam>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public DateTime? Created { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public ICollection<CTeamRole> CTeamRole { get; set; }
-        public ICollection<CUserTeam> CUserTeam { get; set; }
+        public virtual ICollection<CTeamRole> CTeamRole { get; set; }
+        public virtual ICollection<CUserTeam> CUserTeam { get; set; }
     }
 }

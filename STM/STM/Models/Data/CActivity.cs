@@ -5,15 +5,15 @@ namespace STM.Models.Data
 {
     public partial class CActivity
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public DateTime? Created { get; set; }
-        public string ActivityTypeId { get; set; }
-        public string UserId { get; set; }
-        public string TaskId { get; set; }
+        public int? ActivityTypeId { get; set; }
+        public int? UserId { get; set; }
+        public int? TaskId { get; set; }
         public string Description { get; set; }
 
-        public CActivityType ActivityType { get; set; }
-        public CTask Task { get; set; }
-        public CUser User { get; set; }
+        public virtual CActivityType ActivityType { get; set; }
+        public virtual CTask Task { get; set; }
+        public virtual CUser User { get; set; }
     }
 }

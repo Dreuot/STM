@@ -10,11 +10,11 @@ namespace STM.Models.Data
             CList = new HashSet<CList>();
         }
 
-        public string Id { get; set; }
+        public int Id { get; set; }
         public DateTime? Created { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public ICollection<CList> CList { get; set; }
+        public virtual ICollection<CList> CList { get; set; }
     }
 }

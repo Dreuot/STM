@@ -6,6 +6,15 @@ namespace STM.Models.Data
 {
     public partial class STM_DBContext : DbContext
     {
+        public STM_DBContext()
+        {
+        }
+
+        public STM_DBContext(DbContextOptions<STM_DBContext> options)
+            : base(options)
+        {
+        }
+
         public virtual DbSet<CActivity> CActivity { get; set; }
         public virtual DbSet<CActivityType> CActivityType { get; set; }
         public virtual DbSet<CAttach> CAttach { get; set; }
@@ -20,6 +29,7 @@ namespace STM.Models.Data
         public virtual DbSet<CTask> CTask { get; set; }
         public virtual DbSet<CTaskLabel> CTaskLabel { get; set; }
         public virtual DbSet<CTaskPriority> CTaskPriority { get; set; }
+        public virtual DbSet<CTaskRel> CTaskRel { get; set; }
         public virtual DbSet<CTaskStatus> CTaskStatus { get; set; }
         public virtual DbSet<CTaskType> CTaskType { get; set; }
         public virtual DbSet<CTeam> CTeam { get; set; }
@@ -34,24 +44,21 @@ namespace STM.Models.Data
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer(@"Server=.\SQLEXPRESS;Database=STM_DB;Trusted_Connection=True;");
+                optionsBuilder.UseSqlServer("Server=DESKTOP-GO9H921\\SQLEXPRESS;Database=STM_DB;Trusted_Connection=True;");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasAnnotation("ProductVersion", "2.2.4-servicing-10062");
+
             modelBuilder.Entity<CActivity>(entity =>
             {
                 entity.ToTable("c_activity");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.ActivityTypeId)
-                    .HasColumnName("activity_type_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.ActivityTypeId).HasColumnName("activity_type_id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -61,38 +68,31 @@ namespace STM.Models.Data
                     .HasColumnName("description")
                     .HasColumnType("ntext");
 
-                entity.Property(e => e.TaskId)
-                    .HasColumnName("task_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.TaskId).HasColumnName("task_id");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("user_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.UserId).HasColumnName("user_id");
 
                 entity.HasOne(d => d.ActivityType)
                     .WithMany(p => p.CActivity)
                     .HasForeignKey(d => d.ActivityTypeId)
-                    .HasConstraintName("FK__c_activit__activ__73BA3083");
+                    .HasConstraintName("FK__c_activit__activ__778AC167");
 
                 entity.HasOne(d => d.Task)
                     .WithMany(p => p.CActivity)
                     .HasForeignKey(d => d.TaskId)
-                    .HasConstraintName("FK__c_activit__task___75A278F5");
+                    .HasConstraintName("FK__c_activit__task___797309D9");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.CActivity)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK__c_activit__user___74AE54BC");
+                    .HasConstraintName("FK__c_activit__user___787EE5A0");
             });
 
             modelBuilder.Entity<CActivityType>(entity =>
             {
                 entity.ToTable("c_activity_type");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -111,10 +111,7 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_attach");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -133,10 +130,7 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_board");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -155,10 +149,7 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_comment");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Comment)
                     .HasColumnName("comment")
@@ -174,33 +165,26 @@ namespace STM.Models.Data
                     .HasColumnName("last_update")
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.TaskId)
-                    .HasColumnName("task_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.TaskId).HasColumnName("task_id");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("user_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.UserId).HasColumnName("user_id");
 
                 entity.HasOne(d => d.Task)
                     .WithMany(p => p.CComment)
                     .HasForeignKey(d => d.TaskId)
-                    .HasConstraintName("FK__c_comment__task___5535A963");
+                    .HasConstraintName("FK__c_comment__task___59063A47");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.CComment)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK__c_comment__user___5441852A");
+                    .HasConstraintName("FK__c_comment__user___5812160E");
             });
 
             modelBuilder.Entity<CConfig>(entity =>
             {
                 entity.ToTable("c_config");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.KeyC)
                     .HasColumnName("key_c")
@@ -215,10 +199,7 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_label");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -233,14 +214,9 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_list");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.BoardId)
-                    .HasColumnName("board_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.BoardId).HasColumnName("board_id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -264,10 +240,7 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_project");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -277,9 +250,7 @@ namespace STM.Models.Data
                     .HasColumnName("description")
                     .HasColumnType("ntext");
 
-                entity.Property(e => e.Manager)
-                    .HasColumnName("manager")
-                    .HasMaxLength(15);
+                entity.Property(e => e.Manager).HasColumnName("manager");
 
                 entity.Property(e => e.Name)
                     .HasColumnName("name")
@@ -299,10 +270,7 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_release");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -316,9 +284,7 @@ namespace STM.Models.Data
                     .HasColumnName("name")
                     .HasMaxLength(50);
 
-                entity.Property(e => e.ProjectId)
-                    .HasColumnName("project_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.ProjectId).HasColumnName("project_id");
 
                 entity.Property(e => e.ReleaseDate)
                     .HasColumnName("release_date")
@@ -334,10 +300,7 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_role");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -356,68 +319,59 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_task");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.AssigneeId)
-                    .HasColumnName("assignee_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.AssigneeId).HasColumnName("assignee_id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.CreatedById)
-                    .HasColumnName("created_by_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.CreatedById).HasColumnName("created_by_id");
 
                 entity.Property(e => e.Description)
                     .HasColumnName("description")
                     .HasColumnType("ntext");
 
+                entity.Property(e => e.FactComplete)
+                    .HasColumnName("fact_complete")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.FactStart)
+                    .HasColumnName("fact_start")
+                    .HasColumnType("datetime");
+
                 entity.Property(e => e.LastUpdate)
                     .HasColumnName("last_update")
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.ListId)
-                    .HasColumnName("list_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.ListId).HasColumnName("list_id");
 
                 entity.Property(e => e.Name)
                     .HasColumnName("name")
                     .HasMaxLength(100);
 
-                entity.Property(e => e.ParentTaskId)
-                    .HasColumnName("parent_task_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.ParentTaskId).HasColumnName("parent_task_id");
 
-                entity.Property(e => e.PriorityId)
-                    .HasColumnName("priority_id")
-                    .HasMaxLength(15);
-
-                entity.Property(e => e.ProjectId)
-                    .HasColumnName("project_id")
-                    .HasMaxLength(15);
-
-                entity.Property(e => e.ReleaseId)
-                    .HasColumnName("release_id")
-                    .HasMaxLength(15);
-
-                entity.Property(e => e.Resolved)
-                    .HasColumnName("resolved")
+                entity.Property(e => e.PlannedComplete)
+                    .HasColumnName("planned_complete")
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.StatusId)
-                    .HasColumnName("status_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.PlannedStart)
+                    .HasColumnName("planned_start")
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.PriorityId).HasColumnName("priority_id");
+
+                entity.Property(e => e.ProjectId).HasColumnName("project_id");
+
+                entity.Property(e => e.ReleaseId).HasColumnName("release_id");
+
+                entity.Property(e => e.StatusId).HasColumnName("status_id");
 
                 entity.Property(e => e.StoryPoints).HasColumnName("story_points");
 
-                entity.Property(e => e.TypeId)
-                    .HasColumnName("type_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.TypeId).HasColumnName("type_id");
 
                 entity.HasOne(d => d.Assignee)
                     .WithMany(p => p.CTaskAssignee)
@@ -469,42 +423,32 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_task_label");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.LabelId)
-                    .HasColumnName("label_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.LabelId).HasColumnName("label_id");
 
-                entity.Property(e => e.TaskId)
-                    .HasColumnName("task_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.TaskId).HasColumnName("task_id");
 
                 entity.HasOne(d => d.Label)
                     .WithMany(p => p.CTaskLabel)
                     .HasForeignKey(d => d.LabelId)
-                    .HasConstraintName("FK__c_task_la__label__5AEE82B9");
+                    .HasConstraintName("FK__c_task_la__label__5EBF139D");
 
                 entity.HasOne(d => d.Task)
                     .WithMany(p => p.CTaskLabel)
                     .HasForeignKey(d => d.TaskId)
-                    .HasConstraintName("FK__c_task_la__task___59FA5E80");
+                    .HasConstraintName("FK__c_task_la__task___5DCAEF64");
             });
 
             modelBuilder.Entity<CTaskPriority>(entity =>
             {
                 entity.ToTable("c_task_priority");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -519,14 +463,36 @@ namespace STM.Models.Data
                     .HasMaxLength(50);
             });
 
+            modelBuilder.Entity<CTaskRel>(entity =>
+            {
+                entity.ToTable("c_task_rel");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.RelType)
+                    .HasColumnName("rel_type")
+                    .HasMaxLength(200);
+
+                entity.Property(e => e.TaskMasterId).HasColumnName("task_master_id");
+
+                entity.Property(e => e.TaskSlaveId).HasColumnName("task_slave_id");
+
+                entity.HasOne(d => d.TaskMaster)
+                    .WithMany(p => p.CTaskRelTaskMaster)
+                    .HasForeignKey(d => d.TaskMasterId)
+                    .HasConstraintName("FK__c_task_re__task___5441852A");
+
+                entity.HasOne(d => d.TaskSlave)
+                    .WithMany(p => p.CTaskRelTaskSlave)
+                    .HasForeignKey(d => d.TaskSlaveId)
+                    .HasConstraintName("FK__c_task_re__task___5535A963");
+            });
+
             modelBuilder.Entity<CTaskStatus>(entity =>
             {
                 entity.ToTable("c_task_status");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -538,6 +504,10 @@ namespace STM.Models.Data
 
                 entity.Property(e => e.Name)
                     .HasColumnName("name")
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Stage)
+                    .HasColumnName("stage")
                     .HasMaxLength(50);
             });
 
@@ -545,10 +515,7 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_task_type");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -567,10 +534,7 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_team");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
@@ -589,38 +553,28 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_team_role");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.RoleId)
-                    .HasColumnName("role_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.RoleId).HasColumnName("role_id");
 
-                entity.Property(e => e.TeamId)
-                    .HasColumnName("team_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.TeamId).HasColumnName("team_id");
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.CTeamRole)
                     .HasForeignKey(d => d.RoleId)
-                    .HasConstraintName("FK__c_team_ro__role___6A30C649");
+                    .HasConstraintName("FK__c_team_ro__role___6E01572D");
 
                 entity.HasOne(d => d.Team)
                     .WithMany(p => p.CTeamRole)
                     .HasForeignKey(d => d.TeamId)
-                    .HasConstraintName("FK__c_team_ro__team___693CA210");
+                    .HasConstraintName("FK__c_team_ro__team___6D0D32F4");
             });
 
             modelBuilder.Entity<CUser>(entity =>
             {
                 entity.ToTable("c_user");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Avatar)
                     .HasColumnName("avatar")
@@ -663,97 +617,74 @@ namespace STM.Models.Data
             {
                 entity.ToTable("c_user_role");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.RoleId)
-                    .HasColumnName("role_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.RoleId).HasColumnName("role_id");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("user_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.UserId).HasColumnName("user_id");
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.CUserRole)
                     .HasForeignKey(d => d.RoleId)
-                    .HasConstraintName("FK__c_user_ro__role___60A75C0F");
+                    .HasConstraintName("FK__c_user_ro__role___6477ECF3");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.CUserRole)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK__c_user_ro__user___5FB337D6");
+                    .HasConstraintName("FK__c_user_ro__user___6383C8BA");
             });
 
             modelBuilder.Entity<CUserTeam>(entity =>
             {
                 entity.ToTable("c_user_team");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.TeamId)
-                    .HasColumnName("team_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.TeamId).HasColumnName("team_id");
 
-                entity.Property(e => e.UserId)
-                    .HasColumnName("user_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.UserId).HasColumnName("user_id");
 
                 entity.HasOne(d => d.Team)
                     .WithMany(p => p.CUserTeam)
                     .HasForeignKey(d => d.TeamId)
-                    .HasConstraintName("FK__c_user_te__team___66603565");
+                    .HasConstraintName("FK__c_user_te__team___6A30C649");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.CUserTeam)
                     .HasForeignKey(d => d.UserId)
-                    .HasConstraintName("FK__c_user_te__user___656C112C");
+                    .HasConstraintName("FK__c_user_te__user___693CA210");
             });
 
             modelBuilder.Entity<CWorkflow>(entity =>
             {
                 entity.ToTable("c_workflow");
 
-                entity.Property(e => e.Id)
-                    .HasColumnName("id")
-                    .HasMaxLength(15)
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.Created)
                     .HasColumnName("created")
                     .HasColumnType("datetime");
 
-                entity.Property(e => e.RoleId)
-                    .HasColumnName("role_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.RoleId).HasColumnName("role_id");
 
-                entity.Property(e => e.StatusFromId)
-                    .HasColumnName("status_from_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.StatusFromId).HasColumnName("status_from_id");
 
-                entity.Property(e => e.StatusToId)
-                    .HasColumnName("status_to_id")
-                    .HasMaxLength(15);
+                entity.Property(e => e.StatusToId).HasColumnName("status_to_id");
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.CWorkflow)
                     .HasForeignKey(d => d.RoleId)
-                    .HasConstraintName("FK__c_workflo__role___6D0D32F4");
+                    .HasConstraintName("FK__c_workflo__role___70DDC3D8");
 
                 entity.HasOne(d => d.StatusFrom)
                     .WithMany(p => p.CWorkflowStatusFrom)
                     .HasForeignKey(d => d.StatusFromId)
-                    .HasConstraintName("FK__c_workflo__statu__6E01572D");
+                    .HasConstraintName("FK__c_workflo__statu__71D1E811");
 
                 entity.HasOne(d => d.StatusTo)
                     .WithMany(p => p.CWorkflowStatusTo)
                     .HasForeignKey(d => d.StatusToId)
-                    .HasConstraintName("FK__c_workflo__statu__6EF57B66");
+                    .HasConstraintName("FK__c_workflo__statu__72C60C4A");
             });
         }
     }
