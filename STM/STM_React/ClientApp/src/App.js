@@ -211,6 +211,8 @@ class Projects extends Component {
         let activeId = this.state.activeId;
         let setActive = this.setActive;
         let projects = this.state.projects.map((item) => <Project item={item} key={item.id} onClick={setActive} isActive={item.id == activeId} />);
+        let reload = this.reload;
+        let that = this;
         return (
             <div>
                 <h3>
@@ -226,11 +228,49 @@ class Projects extends Component {
                     {projects}
                 </div>
                 <Button caption="Добавить" onClick={() => this.setState({ popupOpen: true })} />
-                <Button caption="Удалить" classNames="ml-3 stm-btn-red" onClick={() => swal({
-                    title: "Заглушка удаления",
-                    text: "Тут скоро будет удаление",
-                    icon: "success"
-                })} />
+                <Button caption="Удалить" classNames="ml-3 stm-btn-red" onClick={function () {
+                    if (!activeId) {
+                        swal({
+                            title: 'Необходимо выбрать запись',
+                            icon: "warning"
+                        });
+                        return;
+                    }
+
+                    swal({
+                        title: "Подтверждение удаления",
+                        text: "Вы действительно хотите удалить выбранную запись?",
+                        icon: "warning",
+                        buttons: {
+                            confirm: {
+                                text: "Удалить",
+                                value: true,
+                                visible: true,
+                                className: "",
+                                closeModal: true
+                            },
+                            cancel: {
+                                text: "Отмена",
+                                value: null,
+                                visible: true,
+                                className: "",
+                                closeModal: true,
+                            },
+                        }
+                    }).then(function (result) {
+                        if (result) {
+                            fetch('api/projects/' + activeId, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
+                                }
+                            }).then(() => {
+                                that.setState({ activeId: null });
+                                reload();
+                            });
+                        }
+                    });
+                }}/>
                 <Popup title="Создать проект" addToSubmit={(obj) => {
                     obj.manager = sessionStorage.getItem("id");
 
