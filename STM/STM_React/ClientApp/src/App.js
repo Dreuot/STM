@@ -1,11 +1,16 @@
 ﻿import React, { Component, useState } from 'react';
+import ReactDOM from 'react-dom';
 import { Route } from 'react-router';
 import { Layout } from './components/Layout';
 import { Home } from './components/Home';
 import { FetchData } from './components/FetchData';
 import { Counter } from './components/Counter';
 import swal from 'sweetalert';
-import $ from 'jquery';
+import { resolve } from 'url';
+import { setTimeout } from 'timers';
+var $ = require('jquery');
+window.jQuery = $;
+require('jquery-autocomplete');
 
 export default class App extends Component {
     static displayName = App.name;
@@ -18,6 +23,7 @@ export default class App extends Component {
             <Layout>
                 <Route exact path='/' component={Home} />
                 <Route exact path='/Projects' component={Projects} />
+                <Route exact path='/Tasks' component={TaskList} />
                 <Route path='/counter' component={Counter} />
                 <Route path='/account/login' component={AccountLogin} />
                 <Route path='/account/register' component={AccountRegister} />
@@ -51,6 +57,132 @@ class Text extends Component {
         this.state = {
             value: this.props.onChange ? undefined : this.props.value,
             placeholder: this.props.placeholder,
+            caption: this.props.caption,
+            suggested: this.props.suggested ? true : false,
+            suggestDisplayed: false,
+            source: null
+        };
+
+        this.onChange = this.onChange.bind(this);
+        this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
+    }
+
+    onChange = (e) => {
+        let val = e.target.value;
+        this.setState({
+            value: val
+        });
+
+        if (this.state.suggested) {
+            let s = null;
+            fetch('api/tasktypes', {
+                method: 'GET',
+                headers: {
+                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                }
+            }).then(response => response.json()).then(json => {
+                let s = json.filter(item => item.name.indexOf(val) != -1);
+                this.setState({
+                    source: s
+                });
+            });
+        }
+    }
+
+    onDocumentMouseDown = event => {
+        console.log(event);
+        if (event.target.parentNode.classList.contains("stm-suggest")) {
+            this.setState({
+                suggestClick: true
+            });
+
+            return;
+        }
+
+        this.setState({
+            suggestClick: false
+        });
+    };
+
+    componentDidMount() {
+        if (this.state.suggested) {
+            document.addEventListener('mousedown', this.onDocumentMouseDown);
+            document.addEventListener('mouseup', this.onDocumentMouseUp);
+        }
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('mousedown', this.onDocumentMouseDown);
+        document.removeEventListener('mouseup', this.onDocumentMouseUp);
+    }
+
+    render() {
+        let s = { width: (this.props.width ? this.props.width : "100") + "%" };
+
+        let hideSuggest = (e) => {
+            if (!this.state.suggestClick)
+                this.setState({ suggestDisplayed: false });
+        };
+
+        let showSuggest = () => {
+            this.setState({ suggestDisplayed: true });
+            fetch('api/tasktypes', {
+                method: 'GET',
+                headers: {
+                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                }
+            }).then(response => response.json()).then(json => {
+                this.setState({
+                    source: json,
+                });
+            });
+        }
+
+        let select = (item) => this.setState({
+            value: item.name,
+            suggestDisplayed: false
+        });
+        let suggest = this.state.suggested ?
+            <div className="" className={"stm-suggest " + (this.state.suggestDisplayed ? "" : "d-none")}>
+                {this.state.source ? this.state.source.map(item => <div
+                    id={item.id}
+                    className="stm-suggest-item"
+                    onClick={function () {
+                        select(item);
+                    }} >
+                    {item.name}
+                </div>) : null}
+            </div>
+            : <div></div>;
+
+        return (
+            <div className="d-flex align-items-center justify-content-end mb-2">
+                <span className={"mr-1 text-nowrap text-right " + (this.state.caption ? "" : "d-none")}>{this.state.caption}:</span>
+                <div style={s} className="position-relative">
+                    <input
+                        autocomplete="off"
+                        type={this.props.type ? this.props.type : "text"}
+                        onChange={this.props.onChange ? this.props.onChange : this.onChange}
+                        className={"stm-text " + this.props.classNames}
+                        name={this.props.name}
+                        placeholder={this.state.placeholder}
+                        value={this.state.value != undefined ? this.state.value : this.props.value}
+                        onBlur={this.state.suggested ? hideSuggest : null}
+                        onFocus={this.state.suggested ? showSuggest : null}
+                    />
+                    {suggest}
+                </div>
+            </div>
+        )
+    }
+}
+
+class TextArea extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            value: this.props.onChange ? undefined : this.props.value,
+            placeholder: this.props.placeholder,
             caption: this.props.caption
         };
 
@@ -64,10 +196,11 @@ class Text extends Component {
     }
 
     render() {
+        let s = { width: (this.props.width ? this.props.width : "100") + "%" };
         return (
-            <div className="d-flex align-items-center">
-                <span className={"mr-1 text-nowrap " + (this.state.caption ? "" : "d-none")}>{this.state.caption}:</span>
-                <input type={this.props.type ? this.props.type : "text"} onChange={this.props.onChange ? this.props.onChange : this.onChange} class={"stm-text " + this.props.classNames} name={this.props.name} placeholder={this.state.placeholder} value={this.state.value != undefined ? this.state.value : this.props.value} />
+            <div className="d-flex align-items-center justify-content-end mb-2">
+                <span className={"mr-1 text-nowrap text-right " + (this.state.caption ? "" : "d-none")}>{this.state.caption}:</span>
+                <textarea style={s} rows={this.props.rows ? this.props.rows : 5} cols={this.props.cols ? this.props.cols : 5} onChange={this.props.onChange ? this.props.onChange : this.onChange} className={"stm-text " + this.props.classNames} name={this.props.name} placeholder={this.state.placeholder} value={this.state.value != undefined ? this.state.value : this.props.value} />
             </div>
         )
     }
@@ -126,20 +259,20 @@ class Popup extends Component {
     render() {
         let dialog = (
             <div>
-                <div class="stm-mask"></div>
-                <div class="stm-popup-container">
-                    <div class="stm-popup">
-                        <div class="stm-popup-header">
+                <div className="stm-mask"></div>
+                <div className="stm-popup-container">
+                    <div className="stm-popup">
+                        <div className="stm-popup-header">
                             {this.props.title}
-                            <span class="stm-popup-close" onClick={this.props.onCancel}></span>
+                            <span className="stm-popup-close" onClick={this.props.onCancel}></span>
                         </div>
                         <form onSubmit={this.onSubmit} >
-                            <div class="stm-popup-body">
+                            <div className="stm-popup-body">
                                 {this.props.children}
                             </div>
-                            <div class="stm-popup-footer d-flex justify-content-end">
-                                <input type="submit" class="stm-btn ml-3 stm-btn-thin" value={this.props.okText ? this.props.okText : "Ок"} />
-                                <button class="stm-btn ml-3 stm-btn-thin stm-btn-red" onClick={this.props.onCancel}>
+                            <div className="stm-popup-footer d-flex justify-content-end">
+                                <input type="submit" className="stm-btn ml-3 stm-btn-thin" value={this.props.okText ? this.props.okText : "Ок"} />
+                                <button className="stm-btn ml-3 stm-btn-thin stm-btn-red" onClick={this.props.onCancel}>
                                     {this.props.cancelText ? this.props.cancelText : "Отмена"}
                                 </button>
                             </div>
@@ -291,30 +424,204 @@ class Projects extends Component {
     }
 }
 
-function Project(props) {
-    let [id, setId] = useState(props.item.id);
-    let [name, setName] = useState(props.item.name);
+class Project extends Component {
+    constructor(props) {
+        super(props);
+        let m = this.props.item.managerNavigation;
+        this.state = {
+            id: this.props.item.id,
+            name: this.props.item.name,
+            manager: (m.lastName ? (m.lastName + ' ') : '') + (m.firstName ? (m.firstName + ' ') : '') + (m.midName ? m.midName : ''),
+            prefix: this.props.item.prefix,
+            description: this.props.item.description
+        };
+    }
 
-    let m = props.item.managerNavigation;
-    let managerFIO = (m.lastName ? (m.lastName + ' ') : '') + (m.firstName ? (m.firstName + ' ') : '') + (m.midName ? m.midName : '');
-    let [manager, setManager] = useState(managerFIO);
-
-    let [prefix, setPrefix] = useState(props.item.prefix);
-    let [description, setdescription] = useState(props.item.description);
-
-    return (
-        <div className={"row pb-2 pt-2 " + (props.isActive ? "stm-row-active" : "")} onClick={(e) => {
-            props.onClick(id);
-        }
-        }>
-            <div className="d-none">{id}</div>
-            <div className="col text-center">{name}</div>
-            <div className="col text-center">{prefix}</div>
-            <div className="col text-center">{description}</div>
-            <div className="col text-center">{manager}</div>
-        </div>
-    );
+    render() {
+        return (
+            <div className={"row pb-2 pt-2 " + (this.props.isActive ? "stm-row-active" : "")} onClick={(e) => {
+                this.props.onClick(this.state.id);
+            }
+            }>
+                <div className="d-none">{this.state.id}</div>
+                <div className="col text-center">{this.state.name}</div>
+                <div className="col text-center">{this.state.prefix}</div>
+                <div className="col text-center">{this.state.description}</div>
+                <div className="col text-center">{this.state.manager}</div>
+            </div>);
+    }
 }
+
+//Задачи
+class TaskList extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            tasks: [],
+            popupOpen: false,
+            activeId: ""
+        };
+
+        this.reload = this.reload.bind(this);
+        this.setActive = this.setActive.bind(this);
+        this.reload();
+    }
+
+    setActive = (id) => {
+        this.setState({
+            activeId: id,
+        })
+    }
+
+    reload = () => {
+        let setActive = this.setActive;
+        let activeId = this.state.activeId;
+        fetch('api/Tasks', {
+            headers: {
+                'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
+            }
+        })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    throw new Error('Breaked');
+                }
+
+                return response;
+            })
+            .then(response => {
+                return response.json()
+            })
+            .then(json => {
+                this.setState({
+                    tasks: json
+                })
+            })
+            .catch((e) => console.log(e));
+    }
+
+    render() {
+        let activeId = this.state.activeId;
+        let setActive = this.setActive;
+        let tasks = this.state.tasks.map((item) => <TaskListItem item={item} key={item.id} onClick={setActive} isActive={item.id == activeId} />);
+        let reload = this.reload;
+        let that = this;
+        return (
+            <div>
+                <h3>
+                    Задачи
+                </h3>
+                <div className="stm-table mb-3">
+                    <div className="stm-table-header row">
+                        <div className="col-1 text-center">Тип</div>
+                        <div className="col-1 text-center">Приоритет</div>
+                        <div className="col-1 text-center">Название</div>
+                        <div className="col-5 text-center">Описание</div>
+                        <div className="col-1 text-center">Статус</div>
+                        <div className="col-2 text-center">Ответственный</div>
+                        <div className="col-1 text-center">Story points</div>
+                    </div>
+                    {tasks}
+                </div>
+                <Button caption="Добавить" onClick={() => this.setState({ popupOpen: true })} />
+                <Button caption="Удалить" classNames="ml-3 stm-btn-red" onClick={function () {
+                    if (!activeId) {
+                        swal({
+                            title: 'Необходимо выбрать запись',
+                            icon: "warning"
+                        });
+                        return;
+                    }
+
+                    swal({
+                        title: "Подтверждение удаления",
+                        text: "Вы действительно хотите удалить выбранную запись?",
+                        icon: "warning",
+                        buttons: {
+                            confirm: {
+                                text: "Удалить",
+                                value: true,
+                                visible: true,
+                                className: "",
+                                closeModal: true
+                            },
+                            cancel: {
+                                text: "Отмена",
+                                value: null,
+                                visible: true,
+                                className: "",
+                                closeModal: true,
+                            },
+                        }
+                    }).then(function (result) {
+                        if (result) {
+                            fetch('api/tasks/' + activeId, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
+                                }
+                            }).then(() => {
+                                that.setState({ activeId: null });
+                                reload();
+                            });
+                        }
+                    });
+                }} />
+                <Popup title="Создать задачу" addToSubmit={(obj) => {
+                    obj.manager = sessionStorage.getItem("id");
+
+                    return obj;
+                }} action="api/tasks" method="POST" isOpen={this.state.popupOpen} onOk={(e) => {
+                    this.setState({ popupOpen: false });
+                    this.reload();
+                }}
+                    onCancel={(e) => {
+                        this.setState({ popupOpen: false })
+                    }}>
+                    <Text placeholder="Название" width="60" name="name" value="" caption="Название" classNames="stm-text-plain" />
+                    <TextArea placeholder="Описание" width="60" name="description" value="" rows="10" cols="10" caption="Описание" classNames="" />
+                    <Text placeholder="Тип" width="60" suggested="true" name="prefix" value="" caption="Тип" classNames="stm-text-plain" />
+                </Popup>
+            </div>
+        );
+    }
+}
+
+class TaskListItem extends Component {
+    constructor(props) {
+        super(props);
+        let m = this.props.item.assignee;
+        this.state = {
+            id: this.props.item.id,
+            name: this.props.item.name,
+            type: this.props.item.type ? this.props.item.type.name : '',
+            priority: this.props.item.priority ? this.props.item.priority.name : '',
+            status: this.props.item.status ? this.props.item.status.name : '',
+            manager: m ? (m.lastName ? (m.lastName + ' ') : '') + (m.firstName ? (m.firstName + ' ') : '') + (m.midName ? m.midName : '') : '',
+            prefix: this.props.item.prefix,
+            description: this.props.item.description,
+            storyPoints: this.props.item.storyPoints,
+        };
+    }
+
+    render() {
+        return (
+            <div className={"row pb-2 pt-2 " + (this.props.isActive ? "stm-row-active" : "")} onClick={(e) => {
+                this.props.onClick(this.state.id);
+            }
+            }>
+                <div className="d-none">{this.state.id}</div>
+                <div className="col-1 text-center">{this.state.type}</div>
+                <div className="col-1 text-center">{this.state.priority}</div>
+                <div className="col-1 text-center">{this.state.name}</div>
+                <div className="col-5 text-center">{this.state.description}</div>
+                <div className="col-1 text-center">{this.state.status}</div>
+                <div className="col-2 text-center">{this.state.manager}</div>
+                <div className="col-1 text-center">{this.state.storyPoints}</div>
+            </div>);
+    }
+}
+
 
 class AccountLogin extends Component {
     constructor(props) {
@@ -460,43 +767,43 @@ class AccountRegister extends Component {
 
     render() {
         return (
-            <div class="login-form mt-5">
-                <div class="d-flex justify-content-center">
+            <div className="login-form mt-5">
+                <div className="d-flex justify-content-center">
                     <h4>Авторизация</h4>
                 </div>
                 <form onSubmit={this.onSubmit} >
-                    <div class="row mb-3">
-                        <div class="col">
-                            <Text type="text" class="stm-text" name="login" value={this.state.login} onChange={this.handleUserInput} placeholder="Логин" />
+                    <div className="row mb-3">
+                        <div className="col">
+                            <Text type="text" classNames="stm-text" name="login" value={this.state.login} onChange={this.handleUserInput} placeholder="Логин" />
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <Text type="password" class="stm-text" name="password" value={this.state.password} onChange={this.handleUserInput} placeholder="Пароль" />
+                    <div className="row mb-3">
+                        <div className="col">
+                            <Text type="password" classNames="stm-text" name="password" value={this.state.password} onChange={this.handleUserInput} placeholder="Пароль" />
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <Text type="password" class="stm-text" name="confirmPassword" value={this.state.confirmPassword} onChange={this.handleUserInput} placeholder="Подтвердите пароль" />
+                    <div className="row mb-3">
+                        <div className="col">
+                            <Text type="password" classNames="stm-text" name="confirmPassword" value={this.state.confirmPassword} onChange={this.handleUserInput} placeholder="Подтвердите пароль" />
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <Text type="text" class="stm-text" name="email" value={this.state.email} onChange={this.handleUserInput} placeholder="Email" />
+                    <div className="row mb-3">
+                        <div className="col">
+                            <Text type="text" classNames="stm-text" name="email" value={this.state.email} onChange={this.handleUserInput} placeholder="Email" />
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <Text type="text" class="stm-text" name="firstName" value={this.state.firstName} onChange={this.handleUserInput} placeholder="Имя" />
+                    <div className="row mb-3">
+                        <div className="col">
+                            <Text type="text" classNames="stm-text" name="firstName" value={this.state.firstName} onChange={this.handleUserInput} placeholder="Имя" />
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col">
-                            <Text type="text" class="stm-text" name="lastName" value={this.state.lastName} onChange={this.handleUserInput} placeholder="Фамилия" />
+                    <div className="row mb-3">
+                        <div className="col">
+                            <Text type="text" classNames="stm-text" name="lastName" value={this.state.lastName} onChange={this.handleUserInput} placeholder="Фамилия" />
                         </div>
                     </div>
-                    <div class="d-flex justify-content-center">
-                        <input type="submit" class="stm-btn" value="Зарегистрироваться" />
+                    <div className="d-flex justify-content-center">
+                        <input type="submit" classNames="stm-btn" value="Зарегистрироваться" />
                     </div>
                 </form>
             </div>

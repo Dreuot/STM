@@ -5,6 +5,22 @@
   padding: 0px;
   outline: none; }
 
+.stm-suggest {
+  position: absolute;
+  z-index: 999999;
+  border-radius: 6px;
+  background-color: white;
+  width: 100%; }
+  .stm-suggest-item {
+    padding: 10px; }
+    .stm-suggest-item:first-child {
+      border-radius: 6px 6px 0px 0px; }
+    .stm-suggest-item:last-child {
+      border-radius: 0px 0px 6px 6px; }
+    .stm-suggest-item:hover {
+      background-color: #ECF0F1;
+      cursor: pointer; }
+
 .model-error {
   color: #E74C3C; }
 
@@ -16,7 +32,7 @@
   background-color: #ECF0F1; }
 
 .stm-table .stm-row-active {
-  background-color: #95A5A6 !important;
+  background-color: #F39C12 !important;
   color: white; }
 
 .stm-table .stm-table-header.row {
@@ -184,7 +200,8 @@ header {
 /*��������� */
 textarea {
   max-width: 100%;
-  min-width: 100%; }
+  min-width: auto;
+  resize: vertical; }
 
 .stm-text {
   display: inline-block;

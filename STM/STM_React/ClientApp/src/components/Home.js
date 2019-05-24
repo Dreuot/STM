@@ -20,33 +20,33 @@ export class Home extends Component {
                 <div>
                     <div className="stm-checkbox">
                         <input id="check1" type="checkbox" />
-                        <label for="check1">Текст чекбокса</label>
+                        <label htmlFor="check1">Текст чекбокса</label>
                     </div>
                 </div>
                 <div>
                     <div className="stm-checkbox">
                         <input id="check2" type="checkbox" />
-                        <label for="check2">Текст чекбокса</label>
+                        <label htmlFor="check2">Текст чекбокса</label>
                     </div>
                 </div>
                 <div>
                     <div className="stm-checkbox">
                         <input id="check3" type="checkbox" />
-                        <label for="check3">Текст чекбокса</label>
+                        <label htmlFor="check3">Текст чекбокса</label>
                     </div>
                 </div>
                 <div>
                     <div className="stm-radio">
                         <input name="test" id="radio1" type="radio" />
-                        <label for="radio1">Текст радиокнопки</label>
+                        <label htmlFor="radio1">Текст радиокнопки</label>
                     </div>
                     <div className="stm-radio">
                         <input name="test" id="radio2" type="radio" />
-                        <label for="radio2">Текст радиокнопки</label>
+                        <label htmlFor="radio2">Текст радиокнопки</label>
                     </div>
                     <div className="stm-radio">
                         <input name="test" id="radio3" type="radio" />
-                        <label for="radio3">Текст радиокнопки</label>
+                        <label htmlFor="radio3">Текст радиокнопки</label>
                     </div>
                 </div>
                 <div className="d-flex">

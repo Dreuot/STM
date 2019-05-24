@@ -38,7 +38,7 @@ export class NavMenu extends Component {
                         </ul>
                     </li>
                 </ul>
-                <div className="search"><input placeholder="search" className="stm-text" type="text" name="search" value="" /></div>
+                <div className="search"><input placeholder="search" className="stm-text" type="text" name="search" /></div>
             </header>
         );
     }

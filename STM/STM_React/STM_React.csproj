@@ -31,6 +31,7 @@
     <None Include="ClientApp\node_modules\react-scripts\config\webpack.config.dev.js" />
     <None Include="ClientApp\node_modules\react-scripts\config\webpack.config.prod.js" />
     <None Include="compilerconfig.json" />
+    <None Include="wwwroot\Images\task_icon.png" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
@@ -57,5 +58,7 @@
       </ResolvedFileToPublish>
     </ItemGroup>
   </Target>
+
+
 
 </Project>

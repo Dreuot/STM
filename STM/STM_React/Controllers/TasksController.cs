@@ -24,7 +24,7 @@ namespace STM_React.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CTask>>> GetCTask()
         {
-            return await _context.CTask.ToListAsync();
+            return await _context.CTask.Include(t => t.Assignee).Include(t => t.Status).Include(t => t.Type).Include(t => t.Priority).ToListAsync();
         }
 
         // GET: api/Tasks/5
