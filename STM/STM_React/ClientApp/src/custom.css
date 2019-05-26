@@ -223,6 +223,10 @@ textarea {
     font-size: 18px;
     color: #34495E;
     padding-left: 2px; }
+  .stm-text.stm-text-plain:focus {
+    font-size: 18px !important; }
+  .stm-text.stm-text-large {
+    font-size: 30px !important; }
   .stm-text:focus {
     border-color: #1abc9c;
     box-shadow: none; }

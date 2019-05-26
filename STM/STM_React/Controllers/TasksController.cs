@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace STM_React.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class TasksController : ControllerBase
     {
         private readonly STM_DBContext _context;
@@ -31,7 +33,14 @@ namespace STM_React.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<CTask>> GetCTask(int id)
         {
-            var cTask = await _context.CTask.FindAsync(id);
+            //Include(t => t.Project)
+            var cTask = await _context.CTask
+                .Include(t => t.Project)
+                .Include(t => t.Status)
+                //.Include(t => t.Project)
+                .Include(t => t.Type)
+                .Include(t => t.Priority)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (cTask == null)
             {

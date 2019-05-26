@@ -15,6 +15,7 @@ namespace STM_React.Models.Data
         public DateTime? Created { get; set; }
         public string Prefix { get; set; }
         public string Name { get; set; }
+        public int? Counter { get; set; }
         public int? Manager { get; set; }
         public string Description { get; set; }
 

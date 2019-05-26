@@ -24,6 +24,7 @@ export default class App extends Component {
                 <Route exact path='/' component={Home} />
                 <Route exact path='/Projects' component={Projects} />
                 <Route exact path='/Tasks' component={TaskList} />
+                <Route path='/Task' component={Task} />
                 <Route path='/counter' component={Counter} />
                 <Route path='/account/login' component={AccountLogin} />
                 <Route path='/account/register' component={AccountRegister} />
@@ -51,6 +52,52 @@ class Button extends Component {
     }
 }
 
+class EntitySelect extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            value: this.props.value,
+            source: this.props.source ? this.props.source : [],
+        };
+
+        if (this.props.getSource) {
+            this.props.getSource().then(json => {
+                this.setState({ source: json })
+            });
+        }
+
+        this.onChange = this.onChange.bind(this);
+    }
+
+    onChange = (e) => {
+        let val = e.target.value;
+        this.setState({
+            value: val
+        });
+    }
+
+    render() {
+        let options = this.state.source.map(item => <option value={item.id}>{item.name}</option>);
+        let s = { width: (this.props.width ? this.props.width : "100") + "%" };
+        return (
+            <div className="d-flex align-items-center justify-content-end mb-2" onBlur={this.props.onBlur ? this.props.onBlur : null}>
+                <span style={{flexGrow: "1"}} className={"mr-1 text-nowrap text-" + (this.props.captionDirection ? this.props.captionDirection : "right") + " " + (this.props.caption ? "" : "d-none")}>{this.props.caption}:</span>
+                <div style={s} className="position-relative">
+                    <select
+                        autoComplete="off"
+                        className={"stm-text " + this.props.classNames}
+                        onChange={this.props.onChange ? this.props.onChange : this.onChange}
+                        name={this.props.name}
+                        value={this.state.value != undefined ? this.state.value : this.props.value}
+                        size={this.props.size ? this.props.size : "0"}>
+                        {options}
+                    </select>
+                </div>
+            </div>
+        )
+    }
+}
+
 class Text extends Component {
     constructor(props) {
         super(props);
@@ -58,13 +105,16 @@ class Text extends Component {
             value: this.props.onChange ? undefined : this.props.value,
             placeholder: this.props.placeholder,
             caption: this.props.caption,
-            suggested: this.props.suggested ? true : false,
+            getSource: this.props.source,
             suggestDisplayed: false,
-            source: null
+            source: null,
+            selectedId: null,
         };
 
         this.onChange = this.onChange.bind(this);
         this.onDocumentMouseDown = this.onDocumentMouseDown.bind(this);
+        this.showSuggest = this.showSuggest.bind(this);
+        this.hideSuggest = this.hideSuggest.bind(this);
     }
 
     onChange = (e) => {
@@ -73,14 +123,9 @@ class Text extends Component {
             value: val
         });
 
-        if (this.state.suggested) {
+        if (this.state.getSource) {
             let s = null;
-            fetch('api/tasktypes', {
-                method: 'GET',
-                headers: {
-                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
-                }
-            }).then(response => response.json()).then(json => {
+            this.state.getSource().then(json => {
                 let s = json.filter(item => item.name.indexOf(val) != -1);
                 this.setState({
                     source: s
@@ -90,7 +135,6 @@ class Text extends Component {
     }
 
     onDocumentMouseDown = event => {
-        console.log(event);
         if (event.target.parentNode.classList.contains("stm-suggest")) {
             this.setState({
                 suggestClick: true
@@ -105,7 +149,7 @@ class Text extends Component {
     };
 
     componentDidMount() {
-        if (this.state.suggested) {
+        if (this.state.getSource) {
             document.addEventListener('mousedown', this.onDocumentMouseDown);
             document.addEventListener('mouseup', this.onDocumentMouseUp);
         }
@@ -116,48 +160,51 @@ class Text extends Component {
         document.removeEventListener('mouseup', this.onDocumentMouseUp);
     }
 
+    hideSuggest(e){
+        if (!this.state.suggestClick)
+            this.setState({ suggestDisplayed: false });
+
+        if (this.props.onBlur) {
+            this.props.onBlur(e);
+        }
+    }
+
+    showSuggest(){
+        this.setState({ suggestDisplayed: true });
+        this.state.getSource().then(json => {
+            this.setState({
+                source: json,
+            });
+        });
+    }
+
     render() {
         let s = { width: (this.props.width ? this.props.width : "100") + "%" };
 
-        let hideSuggest = (e) => {
-            if (!this.state.suggestClick)
-                this.setState({ suggestDisplayed: false });
-        };
-
-        let showSuggest = () => {
-            this.setState({ suggestDisplayed: true });
-            fetch('api/tasktypes', {
-                method: 'GET',
-                headers: {
-                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
-                }
-            }).then(response => response.json()).then(json => {
-                this.setState({
-                    source: json,
-                });
-            });
-        }
-
         let select = (item) => this.setState({
             value: item.name,
-            suggestDisplayed: false
+            suggestDisplayed: false,
+            selectedId: item.id,
         });
-        let suggest = this.state.suggested ?
-            <div className="" className={"stm-suggest " + (this.state.suggestDisplayed ? "" : "d-none")}>
-                {this.state.source ? this.state.source.map(item => <div
-                    id={item.id}
-                    className="stm-suggest-item"
-                    onClick={function () {
-                        select(item);
-                    }} >
-                    {item.name}
-                </div>) : null}
+        let suggest = this.state.getSource ?
+            <div>
+                <div className="" className={"stm-suggest " + (this.state.suggestDisplayed ? "" : "d-none")}>
+                    {this.state.source ? this.state.source.map(item => <div
+                        id={item.id}
+                        className="stm-suggest-item"
+                        onClick={function () {
+                            select(item);
+                        }} >
+                        {item.name}
+                    </div>) : null}
+                </div>
+                <input type="hidden" name={this.props.suggestName} value={this.state.selectedId} />
             </div>
             : <div></div>;
 
         return (
-            <div className="d-flex align-items-center justify-content-end mb-2">
-                <span className={"mr-1 text-nowrap text-right " + (this.state.caption ? "" : "d-none")}>{this.state.caption}:</span>
+            <div className="d-flex align-items-center justify-content-end mb-2" onBlur={this.props.onBlur ? this.props.onBlur : null}>
+                <span style={{ flexGrow: "1" }} className={"mr-1 text-nowrap text-" + (this.props.captionDirection ? this.props.captionDirection : "right") + " " + (this.state.caption ? "" : "d-none")}>{this.state.caption}:</span>
                 <div style={s} className="position-relative">
                     <input
                         autocomplete="off"
@@ -167,8 +214,8 @@ class Text extends Component {
                         name={this.props.name}
                         placeholder={this.state.placeholder}
                         value={this.state.value != undefined ? this.state.value : this.props.value}
-                        onBlur={this.state.suggested ? hideSuggest : null}
-                        onFocus={this.state.suggested ? showSuggest : null}
+                        onBlur={this.props.source ? this.hideSuggest : this.props.onBlur ? this.props.onBlur : null}
+                        onFocus={this.props.source ? this.showSuggest : null}
                     />
                     {suggest}
                 </div>
@@ -199,7 +246,7 @@ class TextArea extends Component {
         let s = { width: (this.props.width ? this.props.width : "100") + "%" };
         return (
             <div className="d-flex align-items-center justify-content-end mb-2">
-                <span className={"mr-1 text-nowrap text-right " + (this.state.caption ? "" : "d-none")}>{this.state.caption}:</span>
+                <span style={{ flexGrow: "1" }}  className={"mr-1 text-nowrap text-" + (this.props.captionDirection ? this.props.captionDirection : "right") + " " + (this.state.caption ? "" : "d-none")}>{this.state.caption}:</span>
                 <textarea style={s} rows={this.props.rows ? this.props.rows : 5} cols={this.props.cols ? this.props.cols : 5} onChange={this.props.onChange ? this.props.onChange : this.onChange} className={"stm-text " + this.props.classNames} name={this.props.name} placeholder={this.state.placeholder} value={this.state.value != undefined ? this.state.value : this.props.value} />
             </div>
         )
@@ -415,9 +462,9 @@ class Projects extends Component {
                     onCancel={(e) => {
                         this.setState({ popupOpen: false })
                     }}>
-                    <Text placeholder="Название" name="name" value="" caption="Название" classNames="stm-text-plain" />
-                    <Text placeholder="Префикс" name="prefix" value="" caption="Префикс" classNames="stm-text-plain" />
-                    <Text placeholder="Описание" name="description" value="" caption="Описание" classNames="stm-text-plain" />
+                    <Text placeholder="Название" width="70" name="name" value="" caption="Название" classNames="" />
+                    <Text placeholder="Префикс" width="70" name="prefix" value="" caption="Префикс" classNames="" />
+                    <TextArea placeholder="Описание" width="70" name="description" value="" rows="10" cols="10" caption="Описание" classNames="" />
                 </Popup>
             </div>
         );
@@ -490,9 +537,10 @@ class TaskList extends Component {
                 return response;
             })
             .then(response => {
-                return response.json()
+                return response.json();
             })
             .then(json => {
+                console.log(json);
                 this.setState({
                     tasks: json
                 })
@@ -513,13 +561,13 @@ class TaskList extends Component {
                 </h3>
                 <div className="stm-table mb-3">
                     <div className="stm-table-header row">
-                        <div className="col-1 text-center">Тип</div>
-                        <div className="col-1 text-center">Приоритет</div>
-                        <div className="col-1 text-center">Название</div>
-                        <div className="col-5 text-center">Описание</div>
-                        <div className="col-1 text-center">Статус</div>
-                        <div className="col-2 text-center">Ответственный</div>
-                        <div className="col-1 text-center">Story points</div>
+                        <div className="col-1 text-left">Тип</div>
+                        <div className="col-1 text-left">Приоритет</div>
+                        <div className="col-1 text-left">Номер</div>
+                        <div className="col-5 text-left">Название</div>
+                        <div className="col-1 text-left">Статус</div>
+                        <div className="col-2 text-left">Ответственный</div>
+                        <div className="col-1 text-left">Story points</div>
                     </div>
                     {tasks}
                 </div>
@@ -555,7 +603,7 @@ class TaskList extends Component {
                         }
                     }).then(function (result) {
                         if (result) {
-                            fetch('api/tasks/' + activeId, {
+                            fetch('/api/tasks/' + activeId, {
                                 method: 'DELETE',
                                 headers: {
                                     'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
@@ -567,10 +615,14 @@ class TaskList extends Component {
                         }
                     });
                 }} />
-                <Popup title="Создать задачу" addToSubmit={(obj) => {
-                    obj.manager = sessionStorage.getItem("id");
+                <Popup
+                    title="Создать задачу"
+                    addToSubmit={(obj) => {
 
-                    return obj;
+                        obj.assigneeId = sessionStorage.getItem("id");
+                        obj.createdById = sessionStorage.getItem("id");
+
+                        return obj;
                 }} action="api/tasks" method="POST" isOpen={this.state.popupOpen} onOk={(e) => {
                     this.setState({ popupOpen: false });
                     this.reload();
@@ -578,9 +630,77 @@ class TaskList extends Component {
                     onCancel={(e) => {
                         this.setState({ popupOpen: false })
                     }}>
-                    <Text placeholder="Название" width="60" name="name" value="" caption="Название" classNames="stm-text-plain" />
-                    <TextArea placeholder="Описание" width="60" name="description" value="" rows="10" cols="10" caption="Описание" classNames="" />
-                    <Text placeholder="Тип" width="60" suggested="true" name="prefix" value="" caption="Тип" classNames="stm-text-plain" />
+
+                    <EntitySelect
+                        name="projectId"
+                        caption="Проект"
+                        width="70"
+                        getSource={function () {
+                            return fetch('/api/projects', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }).then(response => response.json());
+                        }}
+                    />
+                    <Text placeholder="Название" width="70" name="name" value="" caption="Название" classNames="" />
+                    <TextArea placeholder="Описание" width="70" name="description" value="" rows="10" cols="10" caption="Описание" classNames="" />
+                    <EntitySelect
+                        name="typeId"
+                        caption="Тип"
+                        width="70"
+                        getSource={function () {
+                            return fetch('/api/tasktypes', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }).then(response => response.json());
+                        }}
+                    />
+                    <EntitySelect
+                        name="statusId"
+                        caption="Статус"
+                        width="70"
+                        getSource={function () {
+                            return fetch('/api/taskstatus', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }).then(response => response.json());
+                        }}
+                    />
+                    <EntitySelect
+                        name="priorityId"
+                        caption="Статус"
+                        width="70"
+                        getSource={function () {
+                            return fetch('/api/taskpriorities', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }).then(response => response.json());
+                        }}
+                    />
+                    <Text
+                        placeholder="Планируемая дата начала"
+                        width="70"
+                        type="date"
+                        name="plannedStart"
+                        value=""
+                        caption="Начало"
+                        classNames="" />
+                    <Text
+                        placeholder="Планируемая дата окончания"
+                        width="70"
+                        type="date"
+                        name="plannedComplete"
+                        value=""
+                        caption="Окончание"
+                        classNames="" />
                 </Popup>
             </div>
         );
@@ -593,6 +713,7 @@ class TaskListItem extends Component {
         let m = this.props.item.assignee;
         this.state = {
             id: this.props.item.id,
+            code: this.props.item.code,
             name: this.props.item.name,
             type: this.props.item.type ? this.props.item.type.name : '',
             priority: this.props.item.priority ? this.props.item.priority.name : '',
@@ -611,14 +732,176 @@ class TaskListItem extends Component {
             }
             }>
                 <div className="d-none">{this.state.id}</div>
-                <div className="col-1 text-center">{this.state.type}</div>
-                <div className="col-1 text-center">{this.state.priority}</div>
-                <div className="col-1 text-center">{this.state.name}</div>
-                <div className="col-5 text-center">{this.state.description}</div>
-                <div className="col-1 text-center">{this.state.status}</div>
-                <div className="col-2 text-center">{this.state.manager}</div>
-                <div className="col-1 text-center">{this.state.storyPoints}</div>
+                <div className="col-1 text-left">{this.state.type}</div>
+                <div className="col-1 text-left">{this.state.priority}</div>
+                <div className="col-1 text-left"><a href={"/Task/" + this.state.id}>{this.state.code}</a></div>
+                <div className="col-5 text-left">{this.state.name}</div>
+                <div className="col-1 text-left">{this.state.status}</div>
+                <div className="col-2 text-left">{this.state.manager}</div>
+                <div className="col-1 text-left">{this.state.storyPoints}</div>
             </div>);
+    }
+}
+
+class Task extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            project: {}
+        };
+
+        this.autosave = this.autosave.bind(this);
+        this.handleUserInput = this.handleUserInput.bind(this);
+
+        let splitted = this.props.location.pathname.split('/');
+        let id = splitted[splitted.length - 1];
+
+        fetch('/api/tasks/' + id, {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer " + sessionStorage.getItem("token"),
+            }
+        })
+            .then(response => response.json())
+            .then(json => {
+                this.setState(json);
+            });
+    }
+
+    handleUserInput = (e) => {
+        const name = e.target.name;
+        const value = e.target.value;
+        this.setState({ [name]: value });
+
+        this.autosave();
+    }
+
+    autosave() {
+        fetch('/api/tasks/' + this.state.id, {
+            method: 'PUT',
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": "Bearer " + sessionStorage.getItem("token"),
+            },
+            body: JSON.stringify(this.state),
+        })
+    }
+
+    render() {
+        return (
+            <div>
+                <div class="row mt-4">
+                    <div class="col" style={{ fontSize: "16px" }}>
+                        <a style={{fontSize: "16px"}} href={"/Project/" + this.state.project.id}>{this.state.project.name}</a> / <a style={{fontSize: "16px"}} href={"/Task/" + this.state.id}>{this.state.code}</a>
+                    </div>
+                </div>
+                <Text
+                    placeholder="Название"
+                    classNames="stm-text-plain mt-3 stm-text-large"
+                    name="name"
+                    value={this.state.name}
+                    onChange={this.handleUserInput}
+                    onBlur={this.autosave}
+                />
+
+                <h5>Детали</h5>
+                <div class="row">
+                    <div class="col-3">
+                        <EntitySelect
+                            name="statusId"
+                            classNames=""
+                            caption="Статус"
+                            captionDirection="left"
+                            width="80"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                            value={this.state.statusId}
+                            getSource={function () {
+                                return fetch('/api/taskstatus', {
+                                    method: 'GET',
+                                    headers: {
+                                        "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                    }
+                                }).then(response => response.json());
+                            }}
+                        />
+                    </div>
+                    <div class="col-1">
+                        <img src={this.state.status ? this.state.status.icon : ""} alt="" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-3">
+                        <EntitySelect
+                            name="typeId"
+                            classNames=""
+                            caption="Тип"
+                            captionDirection="left"
+                            width="80"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                            value={this.state.typeId}
+                            getSource={function () {
+                                return fetch('/api/tasktypes', {
+                                    method: 'GET',
+                                    headers: {
+                                        "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                    }
+                                }).then(response => response.json());
+                            }}
+                        />
+                    </div>
+                    <div class="col-1">
+                        <img src={this.state.type ? this.state.type.icon : ""} alt="" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-3">
+                        <EntitySelect
+                            name="priorityId"
+                            classNames=""
+                            caption="Приоритет"
+                            captionDirection="left"
+                            width="80"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                            value={this.state.priorityId}
+                            getSource={function () {
+                                return fetch('/api/taskpriorities', {
+                                    method: 'GET',
+                                    headers: {
+                                        "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                    }
+                                }).then(response => response.json());
+                            }}
+                        />
+                    </div>
+                    <div class="col-1">
+                        <img src={this.state.priority ? this.state.priority.icon : ""} alt="" />
+                    </div>
+                </div>
+
+                <h5>Описание</h5>
+                <div class="row">
+                    <div class="col">
+                        <TextArea
+                            placeholder="Описание"
+                            width="100"
+                            captionDirection="left"
+                            name="description"
+                            value={this.state.description}
+                            classNames="stm-text-plain"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                        />
+                    </div>
+                </div>
+
+            </div>
+        )
     }
 }
 

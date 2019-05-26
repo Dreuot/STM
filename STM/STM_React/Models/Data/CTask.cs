@@ -18,6 +18,7 @@ namespace STM_React.Models.Data
         public int Id { get; set; }
         public DateTime? Created { get; set; }
         public DateTime? LastUpdate { get; set; }
+        public string Code { get; set; }
         public DateTime? PlannedStart { get; set; }
         public DateTime? PlannedComplete { get; set; }
         public DateTime? FactStart { get; set; }

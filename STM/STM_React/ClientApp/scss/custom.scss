@@ -345,6 +345,14 @@ textarea {
             color: #34495E;
             padding-left: 2px;
         }
+
+        &:focus {
+            font-size: 18px!important;
+        }
+    }
+
+    &.stm-text-large {
+        font-size: 30px !important;
     }
 
     &:focus {
