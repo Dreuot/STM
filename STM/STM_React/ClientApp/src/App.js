@@ -78,12 +78,13 @@ class EntitySelect extends Component {
 
     render() {
         let options = this.state.source.map(item => <option value={item.id}>{item.name}</option>);
-        let s = { width: (this.props.width ? this.props.width : "100") + "%" };
+        let s = { width: (this.props.width ? this.props.width : "100%")};
         return (
             <div className="d-flex align-items-center justify-content-end mb-2" onBlur={this.props.onBlur ? this.props.onBlur : null}>
                 <span style={{flexGrow: "1"}} className={"mr-1 text-nowrap text-" + (this.props.captionDirection ? this.props.captionDirection : "right") + " " + (this.props.caption ? "" : "d-none")}>{this.props.caption}:</span>
                 <div style={s} className="position-relative">
                     <select
+                        readOnly={this.props.readonly ? true : false}
                         autoComplete="off"
                         className={"stm-text " + this.props.classNames}
                         onChange={this.props.onChange ? this.props.onChange : this.onChange}
@@ -179,7 +180,7 @@ class Text extends Component {
     }
 
     render() {
-        let s = { width: (this.props.width ? this.props.width : "100") + "%" };
+        let s = { width: (this.props.width ? this.props.width : "100%")};
 
         let select = (item) => this.setState({
             value: item.name,
@@ -204,9 +205,17 @@ class Text extends Component {
 
         return (
             <div className="d-flex align-items-center justify-content-end mb-2" onBlur={this.props.onBlur ? this.props.onBlur : null}>
-                <span style={{ flexGrow: "1" }} className={"mr-1 text-nowrap text-" + (this.props.captionDirection ? this.props.captionDirection : "right") + " " + (this.state.caption ? "" : "d-none")}>{this.state.caption}:</span>
+                <span
+                    style={{ flexGrow: "1" }}
+                    className={"mr-1 text-"
+                        + (this.props.captionDirection ? this.props.captionDirection : "right")
+                        + (this.props.nowrap ? " text-nowrap " : "")
+                        + (this.state.caption ? "" : " d-none")}>
+                    {this.state.caption}:
+                    </span>
                 <div style={s} className="position-relative">
                     <input
+                        readOnly={this.props.readonly ? true : false}
                         autocomplete="off"
                         type={this.props.type ? this.props.type : "text"}
                         onChange={this.props.onChange ? this.props.onChange : this.onChange}
@@ -243,7 +252,7 @@ class TextArea extends Component {
     }
 
     render() {
-        let s = { width: (this.props.width ? this.props.width : "100") + "%" };
+        let s = { width: (this.props.width ? this.props.width : "100%")};
         return (
             <div className="d-flex align-items-center justify-content-end mb-2">
                 <span style={{ flexGrow: "1" }}  className={"mr-1 text-nowrap text-" + (this.props.captionDirection ? this.props.captionDirection : "right") + " " + (this.state.caption ? "" : "d-none")}>{this.state.caption}:</span>
@@ -462,9 +471,9 @@ class Projects extends Component {
                     onCancel={(e) => {
                         this.setState({ popupOpen: false })
                     }}>
-                    <Text placeholder="Название" width="70" name="name" value="" caption="Название" classNames="" />
-                    <Text placeholder="Префикс" width="70" name="prefix" value="" caption="Префикс" classNames="" />
-                    <TextArea placeholder="Описание" width="70" name="description" value="" rows="10" cols="10" caption="Описание" classNames="" />
+                    <Text placeholder="Название" width="70%" name="name" value="" caption="Название" classNames="" />
+                    <Text placeholder="Префикс" width="70%" name="prefix" value="" caption="Префикс" classNames="" />
+                    <TextArea placeholder="Описание" width="70%" name="description" value="" rows="10" cols="10" caption="Описание" classNames="" />
                 </Popup>
             </div>
         );
@@ -634,7 +643,7 @@ class TaskList extends Component {
                     <EntitySelect
                         name="projectId"
                         caption="Проект"
-                        width="70"
+                        width="70%"
                         getSource={function () {
                             return fetch('/api/projects', {
                                 method: 'GET',
@@ -644,12 +653,12 @@ class TaskList extends Component {
                             }).then(response => response.json());
                         }}
                     />
-                    <Text placeholder="Название" width="70" name="name" value="" caption="Название" classNames="" />
-                    <TextArea placeholder="Описание" width="70" name="description" value="" rows="10" cols="10" caption="Описание" classNames="" />
+                    <Text placeholder="Название" width="70%" name="name" value="" caption="Название" classNames="" />
+                    <TextArea placeholder="Описание" width="70%" name="description" value="" rows="10" cols="10" caption="Описание" classNames="" />
                     <EntitySelect
                         name="typeId"
                         caption="Тип"
-                        width="70"
+                        width="70%"
                         getSource={function () {
                             return fetch('/api/tasktypes', {
                                 method: 'GET',
@@ -662,7 +671,7 @@ class TaskList extends Component {
                     <EntitySelect
                         name="statusId"
                         caption="Статус"
-                        width="70"
+                        width="70%"
                         getSource={function () {
                             return fetch('/api/taskstatus', {
                                 method: 'GET',
@@ -675,7 +684,7 @@ class TaskList extends Component {
                     <EntitySelect
                         name="priorityId"
                         caption="Статус"
-                        width="70"
+                        width="70%"
                         getSource={function () {
                             return fetch('/api/taskpriorities', {
                                 method: 'GET',
@@ -687,7 +696,7 @@ class TaskList extends Component {
                     />
                     <Text
                         placeholder="Планируемая дата начала"
-                        width="70"
+                        width="70%"
                         type="date"
                         name="plannedStart"
                         value=""
@@ -695,7 +704,7 @@ class TaskList extends Component {
                         classNames="" />
                     <Text
                         placeholder="Планируемая дата окончания"
-                        width="70"
+                        width="70%"
                         type="date"
                         name="plannedComplete"
                         value=""
@@ -747,7 +756,8 @@ class Task extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            project: {}
+            project: {},
+            cTaskRelTaskMaster: []
         };
 
         this.autosave = this.autosave.bind(this);
@@ -762,8 +772,12 @@ class Task extends Component {
                 "Authorization": "Bearer " + sessionStorage.getItem("token"),
             }
         })
-            .then(response => response.json())
+            .then(response => {
+                console.log(response);
+                return response.json();
+            })
             .then(json => {
+                console.log(json);
                 this.setState(json);
             });
     }
@@ -789,6 +803,54 @@ class Task extends Component {
     }
 
     render() {
+        let that = this;
+        let subtasks = this.state.cTaskRelTaskMaster.map(item => {
+            return (
+                <div
+                    className="d-flex stm-subtask align-items-center justify-content-between"
+                    id={item.id}
+                >
+                    <div className="" style={{width:"8%"}}>
+                        <a href={"task/" + item.id}>
+                            {item.taskSlave.code}
+                        </a>
+                    </div>
+                    <div className="" style={{ textOverflow: "ellipsis", width: "40%" }}>
+                        {item.taskSlave.name}
+                    </div>
+                    <div className="" style={{ width: "10%" }}>
+                        <img src={item.taskSlave.type.icon} />
+                    </div>
+                    <div className="" style={{ width: "10%" }}>
+                        {item.taskSlave.status.name}
+                    </div>
+                    <div className="" style={{ width: "12%" }}>
+                        {item.relType}
+                    </div>
+                    <div className="" style={{ width: "10%" }}>
+                        <Button
+                            classNames="stm-btn-link"
+                            caption="Удалить"
+                            onClick={function () {
+                                let newRel = that.state.cTaskRelTaskMaster.filter(elem => elem.id != item.id);
+
+                                that.setState({
+                                    cTaskRelTaskMaster: newRel
+                                });
+
+                                fetch('/api/TaskRels/' + item.id, {
+                                    method: "DELETE",
+                                    headers: {
+                                        "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                    }
+                                });
+                            }}
+                        />
+                    </div>
+                </div>
+            );
+        });
+
         return (
             <div>
                 <div class="row mt-4">
@@ -806,14 +868,14 @@ class Task extends Component {
                 />
 
                 <h5>Детали</h5>
-                <div class="row">
-                    <div class="col-3">
+                <div className="row">
+                    <div className="col-2">
                         <EntitySelect
                             name="statusId"
                             classNames=""
                             caption="Статус"
                             captionDirection="left"
-                            width="80"
+                            width="75%"
                             onChange={this.handleUserInput}
                             onBlur={this.autosave}
                             value={this.state.statusId}
@@ -827,19 +889,70 @@ class Task extends Component {
                             }}
                         />
                     </div>
-                    <div class="col-1">
+                    <div className="col-1">
                         <img src={this.state.status ? this.state.status.icon : ""} alt="" />
+                    </div>
+                    <div className="col-3">
+                        <Text
+                            caption="План. начало"
+                            type="datetime-local"
+                            name="plannedStart"
+                            classNames={this.state.plannedStart > this.state.plannedComplete ? " error" : ""}
+                            captionDirection="left"
+                            width="60%"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                            value={this.state.plannedStart}
+                        />
+                    </div>
+                    <div className="col-3">
+                        <Text
+                            caption="План. окончание"
+                            type="datetime-local"
+                            name="plannedComplete"
+                            classNames={this.state.plannedStart > this.state.plannedComplete ? " error" : ""}
+                            captionDirection="left"
+                            width="60%"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                            value={this.state.plannedComplete}
+                        />
+                    </div>
+                    <div className="col-3">
+                        <EntitySelect
+                            name="createdById"
+                            readonly="true"
+                            classNames=""
+                            caption="Создал"
+                            captionDirection="left"
+                            width="75%"
+                            value={this.state.createdById}
+                            getSource={function () {
+                                return fetch('/api/users', {
+                                    method: 'GET',
+                                    headers: {
+                                        "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                    }
+                                }).then(response => response.json())
+                                    .then(json => json.map(item => {
+                                        return {
+                                            id: item.id,
+                                            name: item.fullName
+                                        }
+                                    }));
+                            }}
+                        />
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-3">
+                <div className="row">
+                    <div className="col-2">
                         <EntitySelect
                             name="typeId"
                             classNames=""
                             caption="Тип"
                             captionDirection="left"
-                            width="80"
+                            width="75%"
                             onChange={this.handleUserInput}
                             onBlur={this.autosave}
                             value={this.state.typeId}
@@ -853,19 +966,71 @@ class Task extends Component {
                             }}
                         />
                     </div>
-                    <div class="col-1">
+                    <div className="col-1">
                         <img src={this.state.type ? this.state.type.icon : ""} alt="" />
+                    </div>
+                    <div className="col-3">
+                        <Text
+                            caption="Факт. начало"
+                            type="datetime-local"
+                            name="factStart"
+                            classNames={this.state.factStart > this.state.factComplete ? " error" : ""}
+                            captionDirection="left"
+                            width="60%"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                            value={this.state.factStart}
+                        />
+                    </div>
+                    <div className="col-3">
+                        <Text
+                            caption="Факт. окончание"
+                            type="datetime-local"
+                            name="factComplete"
+                            classNames={this.state.factStart > this.state.factComplete ? " error" : ""}
+                            captionDirection="left"
+                            width="60%"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                            value={this.state.factComplete}
+                        />
+                    </div>
+                    <div className="col-3">
+                        <EntitySelect
+                            name="assigneeId"
+                            classNames=""
+                            caption="Ответственный"
+                            captionDirection="left"
+                            width="75%"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                            value={this.state.statusId}
+                            getSource={function () {
+                                return fetch('/api/users', {
+                                    method: 'GET',
+                                    headers: {
+                                        "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                    }
+                                }).then(response => response.json())
+                                    .then(json => json.map(item => {
+                                        return {
+                                            id: item.id,
+                                            name: item.fullName
+                                        }
+                                    }));
+                            }}
+                        />
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-3">
+                <div className="row">
+                    <div className="col-2">
                         <EntitySelect
                             name="priorityId"
                             classNames=""
                             caption="Приоритет"
                             captionDirection="left"
-                            width="80"
+                            width="75%"
                             onChange={this.handleUserInput}
                             onBlur={this.autosave}
                             value={this.state.priorityId}
@@ -879,32 +1044,113 @@ class Task extends Component {
                             }}
                         />
                     </div>
-                    <div class="col-1">
+                    <div className="col-2">
                         <img src={this.state.priority ? this.state.priority.icon : ""} alt="" />
+                    </div>
+                    <div className="col-5"></div>
+                    <div className="col-3">
+                        <Text
+                            caption="Story Points"
+                            name="storyPoints"
+                            captionDirection="left"
+                            width="75%"
+                            type="number"
+                            onChange={this.handleUserInput}
+                            onBlur={this.autosave}
+                            value={this.state.storyPoints}
+                        />
                     </div>
                 </div>
 
                 <h5>Описание</h5>
-                <div class="row">
-                    <div class="col">
+                <div className="row">
+                    <div className="col">
                         <TextArea
                             placeholder="Описание"
-                            width="100"
+                            width="100%"
                             captionDirection="left"
                             name="description"
                             value={this.state.description}
-                            classNames="stm-text-plain"
+                            //classNames="stm-text-plain"
                             onChange={this.handleUserInput}
                             onBlur={this.autosave}
                         />
                     </div>
                 </div>
-
+                <h5>Связанные задачи</h5>
+                <SubtypePopupContainer/>
+                {subtasks}
             </div>
         )
     }
 }
 
+class SubtypePopupContainer extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            popupOpen: false,
+        }
+    }
+
+    render() {
+        return (
+            <div className="mb-2">
+                <Button classNames="stm-btn-thin" caption="Добавить" onClick={() => this.setState({ popupOpen: true })} />
+                <Popup
+                    title="Создать задачу"
+                    addToSubmit={(obj) => {
+                        return obj;
+                    }} action="api/taskrels" method="POST" isOpen={this.state.popupOpen} onOk={(e) => {
+                        this.setState({ popupOpen: false });
+                        this.reload();
+                    }}
+                    onCancel={(e) => {
+                        this.setState({ popupOpen: false })
+                    }}>
+                    <EntitySelect
+                        name="relType"
+                        caption="Тип связи"
+                        captionDirection="left"
+                        width="75%"
+                        getSource={function () {
+                            let promise = new Promise(function(resolve, reject){
+                                resolve([
+                                    { name: "Блокирует", id: "Блокирует" },
+                                    { name: "Блокируется", id: "Блокируется" },
+                                    { name: "Подзадача", id: "Подзадача" },
+                                    { name: "Родительская задача", id: "Родительская задача" }]);
+                            });
+
+                            return promise;
+                        }}
+                        //fetch('/api/taskpriorities', {
+                        //        method: 'GET',
+                        //        headers: {
+                        //            "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                        //        }
+                        //    }
+                    />
+                    <EntitySelect
+                        name="relType"
+                        caption="Тип связи"
+                        captionDirection="left"
+                        width="75%"
+                        getSource={function () {
+                            fetch('/api/taskpriorities', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }
+                            ).then(r => r.json())
+                        }}
+                    />
+                </Popup>
+            </div>
+        );
+    }
+}
 
 class AccountLogin extends Component {
     constructor(props) {

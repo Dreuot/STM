@@ -22,6 +22,29 @@ namespace STM_React.Controllers
             _context = context;
         }
 
+        // GET: api/Tasks/5
+        [HttpGet("/code/{code}")]
+        public async Task<ActionResult<CTask>> GetCTaskByCode(string code)
+        {
+            //Include(t => t.Project)
+            var cTask = await _context.CTask
+                .Include(t => t.Project)
+                .Include(t => t.Status)
+                //.Include(t => t.Project)
+                .Include(t => t.CTaskRelTaskMaster).ThenInclude(tr => tr.TaskSlave)
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Type)
+                .Include(t => t.Priority)
+                .FirstOrDefaultAsync(t => t.Code == code);
+
+            if (cTask == null)
+            {
+                return NotFound();
+            }
+
+            return cTask;
+        }
+
         // GET: api/Tasks
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CTask>>> GetCTask()
@@ -38,6 +61,8 @@ namespace STM_React.Controllers
                 .Include(t => t.Project)
                 .Include(t => t.Status)
                 //.Include(t => t.Project)
+                .Include(t => t.CTaskRelTaskMaster).ThenInclude(tr => tr.TaskSlave)
+                .Include(t => t.CreatedBy)
                 .Include(t => t.Type)
                 .Include(t => t.Priority)
                 .FirstOrDefaultAsync(t => t.Id == id);

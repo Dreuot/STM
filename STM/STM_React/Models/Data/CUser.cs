@@ -27,6 +27,14 @@ namespace STM_React.Models.Data
         public string Phone { get; set; }
         public string Email { get; set; }
 
+        public string FullName
+        {
+            get
+            {
+                return $"{LastName} {FirstName} {MidName}";
+            }
+        }
+
         public virtual ICollection<CActivity> CActivity { get; set; }
         public virtual ICollection<CComment> CComment { get; set; }
         public virtual ICollection<CProject> CProject { get; set; }
