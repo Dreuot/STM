@@ -6,8 +6,7 @@ import { Home } from './components/Home';
 import { FetchData } from './components/FetchData';
 import { Counter } from './components/Counter';
 import swal from 'sweetalert';
-import { resolve } from 'url';
-import { setTimeout } from 'timers';
+import DatePicker from 'react-datepicker';
 var $ = require('jquery');
 window.jQuery = $;
 require('jquery-autocomplete');
@@ -819,10 +818,10 @@ class Task extends Component {
                         {item.taskSlave.name}
                     </div>
                     <div className="" style={{ width: "10%" }}>
-                        <img src={item.taskSlave.type.icon} />
+                        <img src={item.taskSlave.type ? item.taskSlave.type.icon : ""} />
                     </div>
                     <div className="" style={{ width: "10%" }}>
-                        {item.taskSlave.status.name}
+                        {item.taskSlave.status ? item.taskSlave.status.name : ""}
                     </div>
                     <div className="" style={{ width: "12%" }}>
                         {item.relType}
@@ -895,26 +894,24 @@ class Task extends Component {
                     <div className="col-3">
                         <Text
                             caption="План. начало"
-                            type="datetime-local"
+                            type="date"
                             name="plannedStart"
                             classNames={this.state.plannedStart > this.state.plannedComplete ? " error" : ""}
                             captionDirection="left"
                             width="60%"
-                            onChange={this.handleUserInput}
-                            onBlur={this.autosave}
+                            onBlur={this.handleUserInput}
                             value={this.state.plannedStart}
                         />
                     </div>
                     <div className="col-3">
                         <Text
                             caption="План. окончание"
-                            type="datetime-local"
+                            type="date"
                             name="plannedComplete"
                             classNames={this.state.plannedStart > this.state.plannedComplete ? " error" : ""}
                             captionDirection="left"
                             width="60%"
-                            onChange={this.handleUserInput}
-                            onBlur={this.autosave}
+                            onBlur={this.handleUserInput}
                             value={this.state.plannedComplete}
                         />
                     </div>
@@ -972,7 +969,7 @@ class Task extends Component {
                     <div className="col-3">
                         <Text
                             caption="Факт. начало"
-                            type="datetime-local"
+                            type="date"
                             name="factStart"
                             classNames={this.state.factStart > this.state.factComplete ? " error" : ""}
                             captionDirection="left"
@@ -985,7 +982,7 @@ class Task extends Component {
                     <div className="col-3">
                         <Text
                             caption="Факт. окончание"
-                            type="datetime-local"
+                            type="date"
                             name="factComplete"
                             classNames={this.state.factStart > this.state.factComplete ? " error" : ""}
                             captionDirection="left"
@@ -1078,10 +1075,86 @@ class Task extends Component {
                     </div>
                 </div>
                 <h5>Связанные задачи</h5>
-                <SubtypePopupContainer/>
-                {subtasks}
+                {this.state.id ? <SubtypePopupContainer parentId={this.state.id} /> : <div />}
+                {this.state.id ? <RelatedTask masterId={this.state.id} /> : <div />}
             </div>
         )
+    }
+}
+
+class RelatedTask extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            items: []
+        };
+
+        
+    }
+
+    componentDidMount() {
+        fetch('api/taskrels/masterid/' + this.props.masterId, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+            }
+        })
+            .then(response => response.json())
+            .then(json => this.setState({ items: json }));
+    }
+
+    render() {
+        let that = this;
+        return (
+            <div>{this.state.items.map(item => {
+                return (
+                    <div
+                        className="d-flex stm-subtask align-items-center justify-content-between"
+                        id={item.id}
+                    >
+                        <div className="" style={{ width: "8%" }}>
+                            <a href={"task/" + item.id}>
+                                {item.taskSlave.code}
+                            </a>
+                        </div>
+                        <div className="" style={{ textOverflow: "ellipsis", width: "40%" }}>
+                            {item.taskSlave.name}
+                        </div>
+                        <div className="" style={{ width: "10%" }}>
+                            <img src={item.taskSlave.type ? item.taskSlave.type.icon : ""} />
+                        </div>
+                        <div className="" style={{ width: "10%" }}>
+                            {item.taskSlave.status ? item.taskSlave.status.name : ""}
+                        </div>
+                        <div className="" style={{ width: "12%" }}>
+                            {item.relType}
+                        </div>
+                        <div className="" style={{ width: "10%" }}>
+                            <Button
+                                classNames="stm-btn-link"
+                                caption="Удалить"
+                                onClick={function () {
+                                    let newRel = that.state.items.filter(elem => elem.id != item.id);
+
+                                    that.setState({
+                                        items: newRel
+                                    });
+
+                                    fetch('/api/TaskRels/' + item.id, {
+                                        method: "DELETE",
+                                        headers: {
+                                            "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                        }
+                                    });
+                                }}
+                            />
+                        </div>
+                    </div>
+                );
+            })
+            }</div>
+        );
     }
 }
 
@@ -1094,12 +1167,15 @@ class SubtypePopupContainer extends Component {
     }
 
     render() {
+        let that = this;
         return (
             <div className="mb-2">
                 <Button classNames="stm-btn-thin" caption="Добавить" onClick={() => this.setState({ popupOpen: true })} />
                 <Popup
                     title="Создать задачу"
                     addToSubmit={(obj) => {
+                        obj.taskMasterId = that.props.parentId;
+
                         return obj;
                     }} action="api/taskrels" method="POST" isOpen={this.state.popupOpen} onOk={(e) => {
                         this.setState({ popupOpen: false });
@@ -1124,26 +1200,26 @@ class SubtypePopupContainer extends Component {
 
                             return promise;
                         }}
-                        //fetch('/api/taskpriorities', {
-                        //        method: 'GET',
-                        //        headers: {
-                        //            "Authorization": "Bearer " + sessionStorage.getItem("token"),
-                        //        }
-                        //    }
                     />
                     <EntitySelect
-                        name="relType"
-                        caption="Тип связи"
+                        name="taskSlaveId"
+                        caption="Задача"
                         captionDirection="left"
                         width="75%"
                         getSource={function () {
-                            fetch('/api/taskpriorities', {
+                            return fetch('/api/tasks/LiteNotRels/' + that.props.parentId, {
                                 method: 'GET',
                                 headers: {
                                     "Authorization": "Bearer " + sessionStorage.getItem("token"),
                                 }
                             }
                             ).then(r => r.json())
+                            .then(json => json.map(item => {
+                                return {
+                                    id: item.id,
+                                    name: (item.code ? item.code : "") + " " + item.name
+                                }
+                            }))
                         }}
                     />
                 </Popup>

@@ -22,8 +22,8 @@ namespace STM_React.Controllers
             _context = context;
         }
 
-        // GET: api/Tasks/5
-        [HttpGet("/code/{code}")]
+        [HttpGet]
+        [Route("Code/{code}")]
         public async Task<ActionResult<CTask>> GetCTaskByCode(string code)
         {
             //Include(t => t.Project)
@@ -45,6 +45,21 @@ namespace STM_React.Controllers
             return cTask;
         }
 
+        [HttpGet]
+        [Route("Lite/Not/{id}")]
+        public async Task<ActionResult<IEnumerable<CTask>>> GetCTaskLiteNot(int id)
+        {
+            return await _context.CTask.Where(t => t.Id != id).ToListAsync();
+        }
+
+        [HttpGet]
+        [Route("LiteNotRels/{id}")]
+        public async Task<ActionResult<IEnumerable<CTask>>> GetCTaskLiteNotRels(int id)
+        {
+            var rels = _context.CTaskRel.Where(rel => rel.TaskMasterId == id).Select(rel => rel.TaskSlaveId);
+            return await _context.CTask.Where(t => t.Id != id && !rels.Any(slave => slave == t.Id)).ToListAsync();
+        }
+
         // GET: api/Tasks
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CTask>>> GetCTask()
@@ -61,8 +76,8 @@ namespace STM_React.Controllers
                 .Include(t => t.Project)
                 .Include(t => t.Status)
                 //.Include(t => t.Project)
-                .Include(t => t.CTaskRelTaskMaster).ThenInclude(tr => tr.TaskSlave)
-                .Include(t => t.CreatedBy)
+                //.Include(t => t.CTaskRelTaskMaster).ThenInclude(tr => tr.TaskSlave)
+                //.Include(t => t.CreatedBy)
                 .Include(t => t.Type)
                 .Include(t => t.Priority)
                 .FirstOrDefaultAsync(t => t.Id == id);

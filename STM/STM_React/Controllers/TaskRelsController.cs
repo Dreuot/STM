@@ -22,6 +22,14 @@ namespace STM_React.Controllers
 
         // GET: api/TaskRels
         [HttpGet]
+        [Route("MasterId/{id}")]
+        public async Task<ActionResult<IEnumerable<CTaskRel>>> GetRelatedByMaster(int id)
+        {
+            return await _context.CTaskRel.Where(rel => rel.TaskMasterId == id).Include(rel => rel.TaskSlave).ToListAsync();
+        }
+
+        // GET: api/TaskRels
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<CTaskRel>>> GetCTaskRel()
         {
             return await _context.CTaskRel.ToListAsync();
