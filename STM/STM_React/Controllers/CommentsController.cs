@@ -20,6 +20,14 @@ namespace STM_React.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        [Route("Task/{id}")]
+        public async Task<ActionResult<IEnumerable<CComment>>> GetTaskComments(int id)
+        {
+            return await _context.CComment.Where(c => c.TaskId == id).OrderBy(c => c.Created).Include(c => c.User).ToListAsync();
+        }
+
+
         // GET: api/Comments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CComment>>> GetCComment()

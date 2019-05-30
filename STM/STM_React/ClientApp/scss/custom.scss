@@ -49,6 +49,130 @@ $h6: 24px;
     outline: none;
 }
 
+.stm-board {
+    .stm-list-open {
+        .stm-board-task {
+            border-color: $blue;
+
+            &:hover {
+                -webkit-box-shadow: 0px 0px 27px 17px rgba(52,152,219,0.17);
+                -moz-box-shadow: 0px 0px 27px 17px rgba(52,152,219,0.17);
+                box-shadow: 0px 0px 27px 17px rgba(52,152,219,0.17);
+            }
+        }
+    }
+
+    .stm-board-header-sp {
+        background-color: lighten($purple, 15%);
+        color: white;
+        border-radius: 30px;
+        padding: 5px 13px;
+    }
+
+    .stm-list-active {
+        .stm-board-task {
+            border-color: $red;
+
+            &:hover {
+                -webkit-box-shadow: 0px 0px 27px 17px rgba(231,76,60,0.12);
+                -moz-box-shadow: 0px 0px 27px 17px rgba(231,76,60,0.12);
+                box-shadow: 0px 0px 27px 17px rgba(231,76,60,0.12);
+            }
+        }
+    }
+
+    .stm-list-done {
+        .stm-board-task {
+            border-color: $green;
+
+            &:hover {
+                -webkit-box-shadow: 0px 0px 27px 17px rgba(46,204,113,0.15);
+                -moz-box-shadow: 0px 0px 27px 17px rgba(46,204,113,0.15);
+                box-shadow: 0px 0px 27px 17px rgba(46,204,113,0.15);
+            }
+        }
+    }
+
+    &-task {
+        display: block;
+        color: inherit !important;
+        text-decoration: none;
+        padding: 10px;
+        border-radius: 6px;
+        border: 2px solid $blue;
+        transition: box-shadow linear 0.2s;
+
+        .stm-board-sp {
+            background-color: lighten($purple, 15%);
+            color: white;
+            border-radius: 20px;
+            padding: 5px 10px;
+        }
+
+        &:hover {
+            -webkit-box-shadow: 0px 0px 27px 17px rgba(0,0,0,0.05);
+            -moz-box-shadow: 0px 0px 27px 17px rgba(0,0,0,0.05);
+            box-shadow: 0px 0px 27px 17px rgba(0,0,0,0.05);
+        }
+
+        img {
+            height: 20px;
+            margin-right: 4px;
+        }
+    }
+}
+
+.stm-comment {
+    position: relative;
+
+    &-author {
+        color: $blue;
+    }
+
+    &-text {
+        padding: 5px 20px 5px 20px;
+        border-bottom: 2px solid $gray;
+    }
+
+    .stm-close {
+        position: absolute;
+        display: block;
+        width: 22px;
+        height: 22px;
+        right: 11px;
+        top: 11px;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: background-color .25s linear;
+
+        &:hover {
+            background-color: $red;
+            &::before, &::after{
+                border-color: white;
+            }
+        }
+
+        &::before, &::after {
+            height: 22px;
+            content: "";
+            position: absolute;
+            border-left: 2px solid $dark-gray;
+        }
+
+        &::before {
+            transform: rotate(45deg);
+            top: 0px;
+            left: 10px;
+        }
+
+        &::after {
+            transform: rotate(-45deg);
+            top: 0px;
+            left: 10px;
+        }
+    }
+}
+
 .stm-suggest {
     position: absolute;
     z-index: 999999;

@@ -14,6 +14,7 @@ namespace STM_React.Models.Data
         public DateTime? Created { get; set; }
         public string Name { get; set; }
         public string Icon { get; set; }
+        public int? PriorNum { get; set; }
 
         public virtual ICollection<CTask> CTask { get; set; }
     }

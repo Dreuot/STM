@@ -23,6 +23,13 @@ namespace STM_React.Controllers
         }
 
         [HttpGet]
+        [Route("Board")]
+        public async Task<ActionResult<IEnumerable<CTask>>> GetTasksForDesc()
+        {
+            return await _context.CTask.Include(t => t.Status).Include(t => t.Type).Include(t => t.Priority).Include(t => t.Assignee).OrderByDescending(t => t.Priority.PriorNum).ToListAsync();
+        }
+
+        [HttpGet]
         [Route("Code/{code}")]
         public async Task<ActionResult<CTask>> GetCTaskByCode(string code)
         {
@@ -43,6 +50,13 @@ namespace STM_React.Controllers
             }
 
             return cTask;
+        }
+
+        [HttpGet]
+        [Route("Project/{id}")]
+        public async Task<ActionResult<IEnumerable<CTask>>> GetProjectTasks(int id)
+        {
+            return await _context.CTask.Where(t => t.ProjectId == id).Include(t => t.Assignee).Include(t => t.Status).Include(t => t.Type).Include(t => t.Priority).ToListAsync();
         }
 
         [HttpGet]
@@ -75,9 +89,6 @@ namespace STM_React.Controllers
             var cTask = await _context.CTask
                 .Include(t => t.Project)
                 .Include(t => t.Status)
-                //.Include(t => t.Project)
-                //.Include(t => t.CTaskRelTaskMaster).ThenInclude(tr => tr.TaskSlave)
-                //.Include(t => t.CreatedBy)
                 .Include(t => t.Type)
                 .Include(t => t.Priority)
                 .FirstOrDefaultAsync(t => t.Id == id);

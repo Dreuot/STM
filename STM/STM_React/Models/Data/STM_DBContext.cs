@@ -340,6 +340,33 @@ namespace STM_React.Models.Data
             {
                 entity.ToTable("c_task");
 
+                entity.HasIndex(e => e.AssigneeId)
+                    .HasName("c_task_assig_id");
+
+                entity.HasIndex(e => e.CreatedById)
+                    .HasName("c_task_creator_id");
+
+                entity.HasIndex(e => e.ListId)
+                    .HasName("c_task_list_id");
+
+                entity.HasIndex(e => e.ParentTaskId)
+                    .HasName("c_task_parent_id");
+
+                entity.HasIndex(e => e.PriorityId)
+                    .HasName("c_task_prior_id");
+
+                entity.HasIndex(e => e.ProjectId)
+                    .HasName("c_task_proj_id");
+
+                entity.HasIndex(e => e.ReleaseId)
+                    .HasName("c_task_release_id");
+
+                entity.HasIndex(e => e.StatusId)
+                    .HasName("c_task_status_id");
+
+                entity.HasIndex(e => e.TypeId)
+                    .HasName("c_task_type_id");
+
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.AssigneeId).HasColumnName("assignee_id");
@@ -361,11 +388,11 @@ namespace STM_React.Models.Data
 
                 entity.Property(e => e.FactComplete)
                     .HasColumnName("fact_complete")
-                    .HasColumnType("datetime");
+                    .HasColumnType("date");
 
                 entity.Property(e => e.FactStart)
                     .HasColumnName("fact_start")
-                    .HasColumnType("datetime");
+                    .HasColumnType("date");
 
                 entity.Property(e => e.LastUpdate)
                     .HasColumnName("last_update")
@@ -381,11 +408,11 @@ namespace STM_React.Models.Data
 
                 entity.Property(e => e.PlannedComplete)
                     .HasColumnName("planned_complete")
-                    .HasColumnType("datetime");
+                    .HasColumnType("date");
 
                 entity.Property(e => e.PlannedStart)
                     .HasColumnName("planned_start")
-                    .HasColumnType("datetime");
+                    .HasColumnType("date");
 
                 entity.Property(e => e.PriorityId).HasColumnName("priority_id");
 
@@ -498,6 +525,8 @@ namespace STM_React.Models.Data
                 entity.Property(e => e.Name)
                     .HasColumnName("name")
                     .HasMaxLength(50);
+
+                entity.Property(e => e.PriorNum).HasColumnName("prior_num");
             });
 
             modelBuilder.Entity<CTaskRel>(entity =>
@@ -505,7 +534,7 @@ namespace STM_React.Models.Data
                 entity.ToTable("c_task_rel");
 
                 entity.HasIndex(e => new { e.TaskMasterId, e.TaskSlaveId })
-                    .HasName("UQ__c_task_r__29AF9ADC1E195DF5")
+                    .HasName("UQ__c_task_r__29AF9ADCA4EE4B99")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");

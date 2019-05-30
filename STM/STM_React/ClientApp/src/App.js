@@ -6,7 +6,7 @@ import { Home } from './components/Home';
 import { FetchData } from './components/FetchData';
 import { Counter } from './components/Counter';
 import swal from 'sweetalert';
-import DatePicker from 'react-datepicker';
+import Moment from 'moment';
 var $ = require('jquery');
 window.jQuery = $;
 require('jquery-autocomplete');
@@ -22,8 +22,10 @@ export default class App extends Component {
             <Layout>
                 <Route exact path='/' component={Home} />
                 <Route exact path='/Projects' component={Projects} />
+                <Route path='/Project' component={ProjectTasks} />
                 <Route exact path='/Tasks' component={TaskList} />
                 <Route path='/Task' component={Task} />
+                <Route path='/Boards' component={Board} />
                 <Route path='/counter' component={Counter} />
                 <Route path='/account/login' component={AccountLogin} />
                 <Route path='/account/register' component={AccountRegister} />
@@ -348,6 +350,122 @@ class Popup extends Component {
     }
 }
 
+
+class Board extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+        this.json2task = this.json2task.bind(this);
+        fetch('/api/tasks/board', {
+            method: "GET",
+            headers: {
+                Authorization: 'Bearer ' + sessionStorage.getItem('token'),
+            }
+        })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    throw new Error('Breaked');
+                }
+
+                return response;
+            })
+            .then(response => {
+                return response.json()
+            })
+            .then(json => {
+                let _active = json.filter(item => item.status.stage == 'in progress');
+                let _open = json.filter(item => item.status.stage == 'open');
+                let _done = json.filter(item => item.status.stage == 'done');
+                this.setState({
+                    active: _active,
+                    open: _open,
+                    done: _done,
+                });
+            })
+            .catch((e) => console.log(e));
+    }
+
+    json2task(json) {
+        return (
+            <a href={"/Task/" + json.id} className="stm-board-task mb-3">
+                <div className="d-flex align-items-center">
+                    <div className=""><img src={json.priority.icon} /></div>
+                    <div className="">{json.code}</div>
+                    <div className="ml-auto">{json.assignee.lastName + " " + json.assignee.firstName.substr(0, 1) + "."}</div>
+                </div>
+                <div className="d-flex align-items-center">
+                    <div className=""><img src={json.type.icon} /></div>
+                    <div className="">{json.name}</div>
+                    <div className={"ml-auto stm-board-sp" + (!json.storyPoints ? " d-none":"")} >{json.storyPoints}</div>
+                </div>
+            </a>
+        )
+    }
+
+    render() {
+        let open = this.state.open ? this.state.open.map(item => this.json2task(item)) : null;
+        let openPS = this.state.open ? this.state.open.reduce(function (result, item) {
+            return result += item.storyPoints;
+        }, 0) : null;
+
+        let done = this.state.done ? this.state.done.map(item => this.json2task(item)) : null;
+        let donePS = this.state.done ? this.state.done.reduce(function (result, item) {
+            return result += item.storyPoints;
+        }, 0) : null;
+
+        let active = this.state.active ? this.state.active.map(item => this.json2task(item)) : null;
+        let activePS = this.state.active ? this.state.active.reduce(function (result, item) {
+            return result += item.storyPoints;
+        }, 0) : null;
+
+        return (
+            <div className="stm-board row">
+                <div className="col-4 stm-list-open">
+                    <div className="d-flex align-items-end">
+                        <h3>Открытые</h3>
+                        <div className="h4 ml-auto stm-board-header-sp">{openPS}</div>
+                    </div>
+                    {open}
+                </div>
+                <div className="col-4 stm-list-active">
+                    <div className="d-flex align-items-end">
+                        <h3>В работе</h3>
+                        <div className="h4 ml-auto stm-board-header-sp">{activePS}</div>
+                    </div>
+                    {active}
+                </div>
+                <div className="col-4 stm-list-done">
+                    <div className="d-flex align-items-end">
+                        <h3>Завершены</h3>
+                        <div className="h4 ml-auto stm-board-header-sp">{donePS}</div>
+                    </div>
+                    {done}
+                </div>
+            </div>
+        )
+    }
+}
+
+class ProjectTasks extends Component {
+    constructor(props) {
+        super(props);
+        let splitted = this.props.location.pathname.split('/');
+        let _id = splitted[splitted.length - 1];
+        this.state = {
+            id: _id
+        };
+    }
+
+    render() {
+        return (
+            <div>
+                <TaskList projectId={this.state.id} />
+            </div>
+        );
+    }
+}
+
 class Projects extends Component {
     constructor(props) {
         super(props);
@@ -531,7 +649,7 @@ class TaskList extends Component {
     reload = () => {
         let setActive = this.setActive;
         let activeId = this.state.activeId;
-        fetch('api/Tasks', {
+        fetch(this.props.projectId ? ("api/Tasks/Project/" + this.props.projectId) : ('api/Tasks'), {
             headers: {
                 'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
             }
@@ -642,6 +760,8 @@ class TaskList extends Component {
                     <EntitySelect
                         name="projectId"
                         caption="Проект"
+                        value={this.props.projectId ? this.props.projectId : null}
+                        readonly={this.props.projectId ? true : false}
                         width="70%"
                         getSource={function () {
                             return fetch('/api/projects', {
@@ -1077,6 +1197,7 @@ class Task extends Component {
                 <h5>Связанные задачи</h5>
                 {this.state.id ? <SubtypePopupContainer parentId={this.state.id} /> : <div />}
                 {this.state.id ? <RelatedTask masterId={this.state.id} /> : <div />}
+                {this.state.id ? <Comments taskId={this.state.id} />: <div />}
             </div>
         )
     }
@@ -1114,7 +1235,7 @@ class RelatedTask extends Component {
                         id={item.id}
                     >
                         <div className="" style={{ width: "8%" }}>
-                            <a href={"task/" + item.id}>
+                            <a href={"task/" + item.taskSlaveId}>
                                 {item.taskSlave.code}
                             </a>
                         </div>
@@ -1179,7 +1300,6 @@ class SubtypePopupContainer extends Component {
                         return obj;
                     }} action="api/taskrels" method="POST" isOpen={this.state.popupOpen} onOk={(e) => {
                         this.setState({ popupOpen: false });
-                        this.reload();
                     }}
                     onCancel={(e) => {
                         this.setState({ popupOpen: false })
@@ -1227,6 +1347,98 @@ class SubtypePopupContainer extends Component {
         );
     }
 }
+
+class Comments extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            comments: []
+        };
+        fetch("/api/comments/task/" + this.props.taskId, {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+            }
+        }).then(response => response.json())
+            .then(json => {
+                this.setState({
+                    comments: json,
+                });
+            })
+    }
+
+    render() {
+        let that = this;
+        return (
+            <div className="stm-comments">
+                <h4>Комментарии</h4>
+                {this.state.comments.map(c => {
+                    let closeBtn = c.userId == sessionStorage.getItem("id") ? (<span onClick={function () {
+                        fetch("/api/comments/" + c.id, {
+                            method: "DELETE",
+                            headers: {
+                                "Authorization": "Bearer " + sessionStorage.getItem("token")
+                            }
+                        });
+
+                        let cmnts = that.state.comments.filter(item => item.id != c.id);
+                        that.setState({ comments: cmnts });
+                    }} className="stm-close"></span>) : null;
+                    return (<div id={c.id} className="stm-comment mb-4">
+                        <div className="row">
+                            <div className="col mb-3"><span className="stm-comment-author">{c.user.fullName}</span> оставил(а) комментарий {Moment(c.created).format('L')}</div>
+                        </div>
+                        <div className="stm-comment-text">
+                            {c.comment}
+                        </div>
+                        {closeBtn}
+                    </div>)
+                })
+                }
+                <CommentPopupContainer taskId={this.props.taskId} />
+            </div>
+        )
+    }
+}
+
+class CommentPopupContainer extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            popupOpen: false,
+        }
+    }
+
+    render() {
+        let that = this;
+        return (
+            <div className="mb-2">
+                <Button classNames="stm-btn-thin stm-btn-blue" caption="Добавить комментарий" onClick={() => this.setState({ popupOpen: true })} />
+                <Popup
+                    title="Комментарий"
+                    addToSubmit={(obj) => {
+                        obj.taskId = that.props.taskId;
+                        obj.userId = sessionStorage.getItem("id");
+
+                        return obj;
+                    }} action="api/comments" method="POST" isOpen={this.state.popupOpen} onOk={(e) => {
+                        this.setState({ popupOpen: false });
+                    }}
+                    onCancel={(e) => {
+                        this.setState({ popupOpen: false })
+                    }}>
+                    <TextArea
+                        name="comment"
+                        placeholder="Введите комментарий..."
+                        captionDirection="left"
+                        width="100%"
+                    />
+                </Popup>
+            </div>
+        );
+    }
+}
+
 
 class AccountLogin extends Component {
     constructor(props) {

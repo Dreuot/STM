@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace STM_React.Models.Data
 {
@@ -17,7 +16,6 @@ namespace STM_React.Models.Data
         }
 
         public int Id { get; set; }
-
         public DateTime? Created { get; set; }
         public DateTime? LastUpdate { get; set; }
         public string Code { get; set; }
