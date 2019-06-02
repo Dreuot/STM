@@ -1,15 +1,40 @@
 ﻿import React, { Component, useState } from 'react';
-import ReactDOM from 'react-dom';
 import { Route } from 'react-router';
 import { Layout } from './components/Layout';
 import { Home } from './components/Home';
-import { FetchData } from './components/FetchData';
 import { Counter } from './components/Counter';
 import swal from 'sweetalert';
 import Moment from 'moment';
+import go, { Binding } from 'gojs';
 var $ = require('jquery');
 window.jQuery = $;
 require('jquery-autocomplete');
+
+var sessionStorage_transfer = function (event) {
+    if (!event) { event = window.event; }
+    if (!event.newValue) return;
+    if (event.key == 'getSessionStorage') {
+        localStorage.setItem('sessionStorage', JSON.stringify(sessionStorage));
+        localStorage.removeItem('sessionStorage');
+    } else if (event.key == 'sessionStorage' && !sessionStorage.length) {
+        var data = JSON.parse(event.newValue);
+        for (var key in data) {
+            sessionStorage.setItem(key, data[key]);
+        }
+    }
+};
+
+if (window.addEventListener) {
+    window.addEventListener("storage", sessionStorage_transfer, false);
+} else {
+    window.attachEvent("onstorage", sessionStorage_transfer);
+};
+
+if (!sessionStorage.length) {
+    localStorage.setItem('getSessionStorage', 'foobar');
+    localStorage.removeItem('getSessionStorage', 'foobar');
+};
+
 
 export default class App extends Component {
     static displayName = App.name;
@@ -25,11 +50,12 @@ export default class App extends Component {
                 <Route path='/Project' component={ProjectTasks} />
                 <Route exact path='/Tasks' component={TaskList} />
                 <Route path='/Task' component={Task} />
+                <Route path='/Setup' component={Setup} />
                 <Route path='/Boards' component={Board} />
                 <Route path='/counter' component={Counter} />
                 <Route path='/account/login' component={AccountLogin} />
                 <Route path='/account/register' component={AccountRegister} />
-                <Route path='/fetch-data' component={FetchData} />
+                <Route path='/Report' component={Report} />
             </Layout>
         );
     }
@@ -347,6 +373,649 @@ class Popup extends Component {
                 {dialog}
             </div>
         )
+    }
+}
+
+class Relations extends Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        let onDeleteRel = this.props.onDeleteRel;
+        let rels = this.props.rels ? this.props.rels.map(item =>
+            <div className="row p-2">
+                <div className="col-4">{item.taskSlave.code + " " + item.taskSlave.name}</div>
+                <div className="col-4">{item.taskMaster.code + " " + item.taskMaster.name}</div>
+                <div className="col-2">{item.relType}</div>
+                <div className="col-2"><a class="stm-btn stm-btn-link" onClick={function () {
+                    swal({
+                        title: "Подтверждение удаления",
+                        text: "Вы действительно хотите удалить выбранную запись?",
+                        icon: "warning",
+                        buttons: {
+                            confirm: {
+                                text: "Удалить",
+                                value: true,
+                                visible: true,
+                                className: "",
+                                closeModal: true
+                            },
+                            cancel: {
+                                text: "Отмена",
+                                value: null,
+                                visible: true,
+                                className: "",
+                                closeModal: true,
+                            },
+                        }
+                    }).then(function (result) {
+                        if (result) {
+                            fetch('api/taskrels/' + item.id, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
+                                }
+                            });
+
+                            onDeleteRel(item.id);
+                        }
+                    });
+                }}>Удалить</a></div>
+            </div>
+        ) : null;
+        return (
+            <div>
+                <h3>Связи</h3>
+                <div className="stm-table mb-3">
+                    <div className="stm-table-header row">
+                        <div className="col-4 text-left">Зависимая задача</div>
+                        <div className="col-4 text-left">Задача</div>
+                        <div className="col-2 text-left">Тип связи</div>
+                        <div className="col-2 text-left"></div>
+                    </div>
+                    {rels}
+                </div>
+                <TaskRelsPopupContainer />
+            </div>
+        )
+    }
+}
+
+class TaskRelsPopupContainer extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            popupOpen: false,
+        }
+    }
+
+    render() {
+        let that = this;
+        return (
+            <div className="mb-2">
+                <Button classNames="stm-btn-thin" caption="Добавить" onClick={() => this.setState({ popupOpen: true })} />
+                <Popup
+                    title="Создать статус"
+                    addToSubmit={(obj) => {
+                        return obj;
+                    }} action="api/taskrels" method="POST" isOpen={this.state.popupOpen} onOk={(e) => {
+                        this.setState({ popupOpen: false });
+                    }}
+                    onCancel={(e) => {
+                        this.setState({ popupOpen: false })
+                    }}>
+                    <EntitySelect
+                        name="relType"
+                        caption="Тип связи"
+                        captionDirection="left"
+                        width="75%"
+                        getSource={function () {
+                            let promise = new Promise(function (resolve) {
+                                resolve([
+                                    { name: "Блокируется", id: "Блокируется" },
+                                    { name: "Родительская задача", id: "Родительская задача" }
+                                ]);
+                            });
+
+                            return promise;
+                        }}
+                    />
+                    <EntitySelect
+                        name="taskSlaveId"
+                        caption='Зависимая задача'
+                        captionDirection="left"
+                        width="75%"
+                        getSource={function () {
+                            return fetch('/api/tasks/lite', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }).then(response => response.json()).then(json => json.map(i => {
+                                return {
+                                    name: i.code + " " + i.name,
+                                    id: i.id
+                                }
+                            }));
+                        }}
+                    />
+                    <EntitySelect
+                        name="taskMasterId"
+                        caption='Задача'
+                        captionDirection="left"
+                        width="75%"
+                        getSource={function () {
+                            return fetch('/api/tasks/lite', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }).then(response => response.json()).then(json => json.map(i => {
+                                return {
+                                    name: i.code + " " + i.name,
+                                    id: i.id
+                                }
+                            }));
+                        }}
+                    />
+                </Popup>
+            </div>
+        );
+    }
+}
+
+class Report extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+
+        this.color = 0;
+        this.drawWF = this.drawWF.bind(this);
+        this.getNextColor = this.getNextColor.bind(this);
+        this.deleteTask = this.deleteTask.bind(this);
+        this.deleteRel = this.deleteRel.bind(this);
+
+        fetch('/api/tasks/lite', {
+            method: "GET",
+            headers: {
+                Authorization: "Bearer " + sessionStorage.getItem("token")
+            }
+        })
+            .then(response => response.json())
+            .then(json => {
+                let _tasks = json.map(item => {
+                    return {
+                        name: item.name,
+                        code: item.code,
+                        id: item.id,
+                        date: item.plannedStart,
+                        weight: item.storyPoints
+                    }
+                });
+
+                this.setState({
+                    tasks: _tasks
+                });
+
+                fetch('/api/taskrels/BackwardDirected', {
+                    method: "GET",
+                    headers: {
+                        Authorization: "Bearer " + sessionStorage.getItem("token")
+                    }
+                })
+                    .then(response => response.json())
+                    .then(json => {
+                        this.setState({
+                            rels: json
+                        });
+
+                        fetch('api/taskrels/maxpath', {
+                            method: "GET"
+                        })
+                            .then(r => r.json())
+                            .then(r => {
+                                let _rels = this.state.rels;
+                                for (let i = 0; i < r.length - 1; i++) {
+                                    let rel = _rels.find(item => item.taskMasterId == r[i] && item.taskSlaveId == r[i + 1]);
+                                    rel.color = "#C0392B";
+                                    rel.stroke = "5";
+                                }
+
+                                this.setState({
+                                    rels: _rels
+                                })
+
+                                this.drawWF();
+                            });
+                    });
+            });
+    }
+
+    deleteRel(id) {
+        let _rels = this.state.rels.filter(r => r.id != id);
+        this.setState({
+            rels: _rels
+        });
+
+        this.drawWF();
+    }
+
+    deleteTask(id) {
+        let _tasks = this.state.tasks.filter(t => t.id != id);
+        let _rels = this.state.rels.filter(r => r.taskSlaveId != id && r.taskMasterId != id);
+        this.setState({
+            tasks: _tasks,
+            rels: _rels
+        });
+
+        this.drawWF();
+    }
+
+    drawWF() {
+        this.state.d ? this.state.d.div = null : null;
+
+        let $ = go.GraphObject.make;
+        let diagram = $(go.Diagram, "graph");
+        let nodes = this.state.tasks.map(item => {
+            return {
+                key: item.id,
+                text: item.code + " " + item.name + " " + Moment(item.date).format("DD.MM.YYYY"),
+                color: this.getNextColor()
+            }
+        });
+
+        let links = this.state.rels.map(item => {
+            return {
+                from: item.taskMaster.id,
+                to: item.taskSlave.id,
+                text: item.taskMaster.storyPoints,
+                color: item.color ? item.color : "black",
+                stroke: item.stroke
+            }
+        });
+
+        diagram.linkTemplate =
+            $(go.Link,
+                $(go.Shape, new go.Binding("stroke", "color"), new go.Binding("strokeWidth", "stroke")),                           // this is the link shape (the line)
+                $(go.Shape, { toArrow: "Standard" }, new go.Binding("stroke", "color")),  // this is an arrowhead
+                $(go.TextBlock,                        // this is a Link label
+                    new go.Binding("text", "text"),
+                    { segmentOffset: new go.Point(0, -6) }
+                )
+            );
+
+        diagram.model = new go.GraphLinksModel(nodes, links);
+        diagram.nodeTemplate = $(go.Node, "Auto",
+            $(go.Shape, "RoundedRectangle", { fill: "White" }, new go.Binding("fill", "color")),
+            $(go.TextBlock, { margin: 5, width: 120 }, "text", new go.Binding("text", "text")),
+        );
+        diagram.layout = $(go.TreeLayout);
+
+        this.setState({
+            d: diagram
+        })
+    }
+
+    getNextColor() {
+        let colors = ["#1abc9c", "#3498DB", "#9B59B6", "#F1C40F", "#E74C3C", "#2ECC71"];
+        let color = colors[this.color];
+        this.color = (this.color + 1) > 5 ? 0 : this.color + 1;
+
+        return color;
+    }
+
+    render() {
+
+        return (
+            <div>
+                <h3>Расчет критического пути</h3>
+                <a class="stm-btn stm-btn-orange" onClick={function () {
+                    fetch('api/taskrels/SetTimes', {
+                        method: "GET"
+                    });
+                }} >Автоматический расчет дат</a>
+                <div id="graph" style={{ height: "600px" }}></div>
+                <Relations rels={this.state.rels} onDeleteRel={this.deleteRel} />
+                <TaskList onDeleteTask={this.deleteTask} />
+            </div>
+        )
+    }
+}
+
+class Setup extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {};
+        this.color = 0;
+
+        this.drawWF = this.drawWF.bind(this);
+        this.getNextColor = this.getNextColor.bind(this);
+
+        fetch("/api/taskstatus", {
+            method: 'GET',
+            headers: {
+                Authorization: "Bearer " + sessionStorage.getItem("token")
+            }
+        }).then(response => response.json())
+            .then(json => {
+                this.setState({
+                    statuses: json
+                });
+
+                fetch('/api/workflows', {
+                    method: 'GET',
+                    headers: {
+                        Authorization: "Bearer " + sessionStorage.getItem("token")
+                    }
+                }).then(response => response.json())
+                    .then(json => {
+                        this.setState({
+                            workflows: json
+                        })
+                    }).then(() => {
+                        this.drawWF();
+                    });
+            })
+    }
+
+    drawWF() {
+        this.state.d ? this.state.d.div = null : null;
+
+        let $ = go.GraphObject.make;
+        let diagram = $(go.Diagram, "graph");
+        let nodes = this.state.statuses.map(item => {
+            return {
+                key: item.name,
+                color: this.getNextColor()
+            }
+        });
+
+        let links = this.state.workflows.map(item => {
+            return {
+                from: item.statusFrom.name,
+                to: item.statusTo.name
+            }
+        });
+
+        diagram.model = new go.GraphLinksModel(nodes, links);
+        diagram.nodeTemplate = $(go.Node, "Auto",
+            $(go.Shape, "RoundedRectangle", { fill: "White" }, new go.Binding("fill", "color")),
+            $(go.TextBlock, {margin: 5},"text", new go.Binding("text", "key")),
+        );
+        diagram.layout = $(go.CircularLayout);
+
+        this.setState({
+            d: diagram
+        })
+    }
+
+    getNextColor() {
+        let colors = ["#1abc9c", "#3498DB", "#9B59B6", "#F1C40F", "#E74C3C", "#2ECC71"];
+        let color = colors[this.color];
+        this.color = (this.color + 1) > 5 ? 0 : this.color + 1;
+
+        return color;
+    }
+
+    render() {
+        let that = this;
+        let statuses = this.state.statuses ? this.state.statuses.map(item => {
+            return (
+                <div className="stm-board-row row p-2">
+                    <div className="col"><img src={item.icon}/></div>
+                    <div className="col">{item.name}</div>
+                    <div className="col">{item.stage}</div>
+                    <div className="col text-right"><a class="stm-btn stm-btn-link" onClick={function () {
+                        swal({
+                            title: "Подтверждение удаления",
+                            text: "Вы действительно хотите удалить выбранную запись?",
+                            icon: "warning",
+                            buttons: {
+                                confirm: {
+                                    text: "Удалить",
+                                    value: true,
+                                    visible: true,
+                                    className: "",
+                                    closeModal: true
+                                },
+                                cancel: {
+                                    text: "Отмена",
+                                    value: null,
+                                    visible: true,
+                                    className: "",
+                                    closeModal: true,
+                                },
+                            }
+                        }).then(function (result) {
+                            if (result) {
+                                fetch('api/taskstatus/' + item.id, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
+                                    }
+                                });
+
+                                let newStat = that.state.statuses.filter(s => s.id != item.id);
+                                let newWFs = that.state.workflows.filter(wf => wf.statusFromId != item.id && wf.statusToId != item.id)
+                                that.setState({
+                                    statuses: newStat,
+                                    workflows: newWFs
+                                });
+
+                                that.drawWF();
+                            }
+                        });
+                    }}>Удалить</a></div>
+                </div>
+            )
+        }) : null;
+
+        let workflows = this.state.workflows ? this.state.workflows.map(item => {
+            return (
+                <div className="stm-board-row row p-2">
+                    <div className="col">{item.role.name}</div>
+                    <div className="col">{item.statusFrom.name}</div>
+                    <div className="col">{item.statusTo.name}</div>
+                    <div className="col text-right"><a class="stm-btn stm-btn-link" onClick={function () {
+                        swal({
+                            title: "Подтверждение удаления",
+                            text: "Вы действительно хотите удалить выбранную запись?",
+                            icon: "warning",
+                            buttons: {
+                                confirm: {
+                                    text: "Удалить",
+                                    value: true,
+                                    visible: true,
+                                    className: "",
+                                    closeModal: true
+                                },
+                                cancel: {
+                                    text: "Отмена",
+                                    value: null,
+                                    visible: true,
+                                    className: "",
+                                    closeModal: true,
+                                },
+                            }
+                        }).then(function (result) {
+                            if (result) {
+                                fetch('api/workflows/' + item.id, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': 'Bearer ' + sessionStorage.getItem('token'),
+                                    }
+                                });
+                                let newWFs = that.state.workflows.filter(wf => wf.id != item.id)
+                                that.setState({
+                                    workflows: newWFs
+                                });
+
+                                that.drawWF();
+                            }
+                        });
+                    }}>Удалить</a></div>
+                </div>
+            )
+        }) : null;
+
+        return (
+            <div>
+                <h3>Workflow</h3>
+                <div id="graph"></div>
+                <div className="row">
+                    <div className="col-lg-6 col-md-12">
+                        <h3>Статусная модель</h3>
+                        <div className="stm-table mb-3 col-12">
+                            <div className="stm-table-header row">
+                                <div className="col text-left">Роль</div>
+                                <div className="col text-left">Статус "Из"</div>
+                                <div className="col text-left">Статус "В"</div>
+                                <div className="col text-left"></div>
+                            </div>
+                            {workflows}
+                        </div>
+                        <WorkflowPopupContainer />
+                    </div>
+                    <div className="col-lg-6 col-md-12">
+                        <h3>Статусы</h3>
+                        <div className="stm-table mb-3 col-12">
+                            <div className="stm-table-header row">
+                                <div className="col text-left">Иконка</div>
+                                <div className="col text-left">Название</div>
+                                <div className="col text-left">Этап</div>
+                                <div className="col text-left"></div>
+                            </div>
+                            {statuses}
+                        </div>
+                        <StatusPopupContainer />
+                    </div>
+                </div>
+            </div>
+        )
+    }
+}
+
+class WorkflowPopupContainer extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            popupOpen: false,
+        }
+    }
+
+    render() {
+        let that = this;
+        return (
+            <div className="mb-2">
+                <Button classNames="stm-btn-thin" caption="Добавить" onClick={() => this.setState({ popupOpen: true })} />
+                <Popup
+                    title="Создать статус"
+                    addToSubmit={(obj) => {
+                        return obj;
+                    }} action="api/workflows" method="POST" isOpen={this.state.popupOpen} onOk={(e) => {
+                        this.setState({ popupOpen: false });
+                    }}
+                    onCancel={(e) => {
+                        this.setState({ popupOpen: false })
+                    }}>
+                    <EntitySelect
+                        name="roleId"
+                        caption="Роль"
+                        captionDirection="left"
+                        width="75%"
+                        getSource={function () {
+                            return fetch('/api/roles', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }).then(response => response.json());
+                        }}
+                    />
+                    <EntitySelect
+                        name="statusFromId"
+                        caption='Статус "Из"'
+                        captionDirection="left"
+                        width="75%"
+                        getSource={function () {
+                            return fetch('/api/taskstatus', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }).then(response => response.json());
+                        }}
+                    />
+                    <EntitySelect
+                        name="statusToId"
+                        caption='Статус "В"'
+                        captionDirection="left"
+                        width="75%"
+                        getSource={function () {
+                            return fetch('/api/taskstatus', {
+                                method: 'GET',
+                                headers: {
+                                    "Authorization": "Bearer " + sessionStorage.getItem("token"),
+                                }
+                            }).then(response => response.json());
+                        }}
+                    />
+                </Popup>
+            </div>
+        );
+    }
+}
+
+class StatusPopupContainer extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            popupOpen: false,
+        }
+    }
+
+    render() {
+        let that = this;
+        return (
+            <div className="mb-2">
+                <Button classNames="stm-btn-thin" caption="Добавить" onClick={() => this.setState({ popupOpen: true })} />
+                <Popup
+                    title="Создать статус"
+                    addToSubmit={(obj) => {
+                        return obj;
+                    }} action="api/taskstatus" method="POST" isOpen={this.state.popupOpen} onOk={(e) => {
+                        this.setState({ popupOpen: false });
+                    }}
+                    onCancel={(e) => {
+                        this.setState({ popupOpen: false })
+                    }}>
+                    <Text
+                        name="name"
+                        caption="Название"
+                        captionDirection="left"
+                        width="75%"
+                    />
+                    <EntitySelect
+                        name="stage"
+                        caption="Стадия"
+                        captionDirection="left"
+                        width="75%"
+                        getSource={function () {
+                            let promise = new Promise(function (resolve) {
+                                resolve([
+                                    { name: "Открыто", id: "open" },
+                                    { name: "В работе", id: "in progress" },
+                                    { name: "Завершено", id: "done" }
+                                ]);
+                            });
+
+                            return promise;
+                        }}
+                    />
+                </Popup>
+            </div>
+        );
     }
 }
 
@@ -729,6 +1398,10 @@ class TaskList extends Component {
                         }
                     }).then(function (result) {
                         if (result) {
+                            if (that.props.onDeleteTask) {
+                                that.props.onDeleteTask(activeId);
+                            }
+
                             fetch('/api/tasks/' + activeId, {
                                 method: 'DELETE',
                                 headers: {
@@ -838,35 +1511,35 @@ class TaskList extends Component {
 class TaskListItem extends Component {
     constructor(props) {
         super(props);
-        let m = this.props.item.assignee;
-        this.state = {
-            id: this.props.item.id,
-            code: this.props.item.code,
-            name: this.props.item.name,
-            type: this.props.item.type ? this.props.item.type.name : '',
-            priority: this.props.item.priority ? this.props.item.priority.name : '',
-            status: this.props.item.status ? this.props.item.status.name : '',
-            manager: m ? (m.lastName ? (m.lastName + ' ') : '') + (m.firstName ? (m.firstName + ' ') : '') + (m.midName ? m.midName : '') : '',
-            prefix: this.props.item.prefix,
-            description: this.props.item.description,
-            storyPoints: this.props.item.storyPoints,
-        };
+        //let m = this.props.item.assignee;
+        //this.state = {
+        //    id: this.props.item.id,
+        //    code: this.props.item.code,
+        //    name: this.props.item.name,
+        //    type: this.props.item.type ? this.props.item.type.name : '',
+        //    priority: this.props.item.priority ? this.props.item.priority.name : '',
+        //    status: this.props.item.status ? this.props.item.status.name : '',
+        //    manager: m ? (m.lastName ? (m.lastName + ' ') : '') + (m.firstName ? (m.firstName + ' ') : '') + (m.midName ? m.midName : '') : '',
+        //    prefix: this.props.item.prefix,
+        //    description: this.props.item.description,
+        //    storyPoints: this.props.item.storyPoints,
+        //};
     }
 
     render() {
         return (
             <div className={"row pb-2 pt-2 " + (this.props.isActive ? "stm-row-active" : "")} onClick={(e) => {
-                this.props.onClick(this.state.id);
+                this.props.onClick(this.props.item.id);
             }
             }>
-                <div className="d-none">{this.state.id}</div>
-                <div className="col-1 text-left">{this.state.type}</div>
-                <div className="col-1 text-left">{this.state.priority}</div>
-                <div className="col-1 text-left"><a href={"/Task/" + this.state.id}>{this.state.code}</a></div>
-                <div className="col-5 text-left">{this.state.name}</div>
-                <div className="col-1 text-left">{this.state.status}</div>
-                <div className="col-2 text-left">{this.state.manager}</div>
-                <div className="col-1 text-left">{this.state.storyPoints}</div>
+                <div className="d-none">{this.props.item.id}</div>
+                <div className="col-1 text-left">{this.props.item.type}</div>
+                <div className="col-1 text-left">{this.props.item.priority}</div>
+                <div className="col-1 text-left"><a href={"/Task/" + this.props.item.id}>{this.props.item.code}</a></div>
+                <div className="col-5 text-left">{this.props.item.name}</div>
+                <div className="col-1 text-left">{this.props.item.status}</div>
+                <div className="col-2 text-left">{this.props.item.assignee}</div>
+                <div className="col-1 text-left">{this.props.item.storyPoints}</div>
             </div>);
     }
 }
@@ -1019,6 +1692,7 @@ class Task extends Component {
                             classNames={this.state.plannedStart > this.state.plannedComplete ? " error" : ""}
                             captionDirection="left"
                             width="60%"
+                            onChange={this.handleUserInput}
                             onBlur={this.handleUserInput}
                             value={this.state.plannedStart}
                         />
@@ -1031,6 +1705,7 @@ class Task extends Component {
                             classNames={this.state.plannedStart > this.state.plannedComplete ? " error" : ""}
                             captionDirection="left"
                             width="60%"
+                            onChange={this.handleUserInput}
                             onBlur={this.handleUserInput}
                             value={this.state.plannedComplete}
                         />

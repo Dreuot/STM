@@ -24,7 +24,7 @@ namespace STM_React.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CWorkflow>>> GetCWorkflow()
         {
-            return await _context.CWorkflow.ToListAsync();
+            return await _context.CWorkflow.Include(w => w.StatusFrom).Include(w => w.StatusTo).Include(w => w.Role).ToListAsync();
         }
 
         // GET: api/Workflows/5

@@ -24,9 +24,43 @@ namespace STM_React.Controllers
 
         [HttpGet]
         [Route("Board")]
-        public async Task<ActionResult<IEnumerable<CTask>>> GetTasksForDesc()
+        public async Task<ActionResult<IEnumerable<object>>> GetTasksForDesc()
         {
-            return await _context.CTask.Include(t => t.Status).Include(t => t.Type).Include(t => t.Priority).Include(t => t.Assignee).OrderByDescending(t => t.Priority.PriorNum).ToListAsync();
+            return await _context.CTask
+                .Include(t => t.Status)
+                .Include(t => t.Type)
+                .Include(t => t.Priority)
+                .Include(t => t.Assignee)
+                .OrderByDescending(t => t.Priority.PriorNum)
+                .Select(t => new
+                {
+                    Code = t.Code,
+                    Name = t.Name,
+                    Status = new
+                    {
+                        t.Status.Name,
+                        t.Status.Stage
+                    },
+                    Priority = new
+                    {
+                        t.Priority.Name,
+                        t.Priority.Icon
+                    },
+                    Type = new
+                    {
+                        t.Type.Name,
+                        t.Type.Icon
+                    },
+                    Id = t.Id,
+                    Assignee = new
+                    {
+                        t.Assignee.FullName,
+                        t.Assignee.FirstName,
+                        t.Assignee.LastName
+                    },
+                    StoryPoints = t.StoryPoints
+                })
+                .ToListAsync();
         }
 
         [HttpGet]
@@ -54,9 +88,32 @@ namespace STM_React.Controllers
 
         [HttpGet]
         [Route("Project/{id}")]
-        public async Task<ActionResult<IEnumerable<CTask>>> GetProjectTasks(int id)
+        public async Task<ActionResult<IEnumerable<object>>> GetProjectTasks(int id)
         {
-            return await _context.CTask.Where(t => t.ProjectId == id).Include(t => t.Assignee).Include(t => t.Status).Include(t => t.Type).Include(t => t.Priority).ToListAsync();
+            return await _context.CTask.Where(t => t.ProjectId == id)
+                .Include(t => t.Assignee)
+                .Include(t => t.Status)
+                .Include(t => t.Type)
+                .Include(t => t.Priority)
+                .Select(t => new
+                {
+                    Code = t.Code,
+                    Name = t.Name,
+                    Status = t.Status.Name,
+                    Priority = t.Priority.Name,
+                    Type = t.Type.Name,
+                    Id = t.Id,
+                    Assignee = t.Assignee.FullName,
+                    StoryPoints = t.StoryPoints
+                })
+                .ToListAsync();
+        }
+
+        [HttpGet]
+        [Route("Lite")]
+        public async Task<ActionResult<IEnumerable<CTask>>> GetTaskLite()
+        {
+            return await _context.CTask.ToListAsync();
         }
 
         [HttpGet]
@@ -76,9 +133,26 @@ namespace STM_React.Controllers
 
         // GET: api/Tasks
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CTask>>> GetCTask()
+        public async Task<ActionResult<IEnumerable<object>>> GetCTask()
         {
-            return await _context.CTask.Include(t => t.Assignee).Include(t => t.Status).Include(t => t.Type).Include(t => t.Priority).ToListAsync();
+            var x = await _context.CTask
+                .Include(t => t.Assignee)
+                .Include(t => t.Status)
+                .Include(t => t.Type)
+                .Include(t => t.Priority)
+                .Select(t => new
+                {
+                    Code = t.Code,
+                    Name = t.Name,
+                    Status = t.Status.Name,
+                    Priority = t.Priority.Name,
+                    Type = t.Type.Name,
+                    Id = t.Id,
+                    Assignee = t.Assignee.FullName,
+                    StoryPoints = t.StoryPoints
+                })
+                .ToListAsync();
+            return x; 
         }
 
         // GET: api/Tasks/5

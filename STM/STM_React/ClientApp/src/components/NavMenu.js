@@ -29,14 +29,8 @@ export class NavMenu extends Component {
                     <li><a href="/Projects">Проекты</a></li>
                     <li><a href="/Boards">Доски</a></li>
                     <li><a href="/Tasks">Задачи</a></li>
-                    <li>
-                        <a href="/Setup">Setup</a>
-                        <ul className="stm-submenu">
-                            <li><a href="/Setup/Status"></a></li>
-                            <li><a href="/Setup/Workflow"></a></li>
-                            <li><a href="/Setup/Type"></a></li>
-                        </ul>
-                    </li>
+                    <li><a href="/Setup">Setup</a></li>
+                    <li><a href="/Report">Отчет</a></li>
                 </ul>
                 <div className="search"><input placeholder="search" className="stm-text" type="text" name="search" /></div>
             </header>
